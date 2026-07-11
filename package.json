@@ -1,0 +1,23 @@
+{
+  "name": "kwhab-community-discovery",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KW Hab Community Discovery Platform — hackathon MVP",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && rm -rf pgdata && docker compose up -d db",
+    "db:psql": "docker compose exec db psql -U kwhab -d kwhab",
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "dev": "npm run db:up && concurrently -n server,web -c blue,magenta \"npm run dev:server\" \"npm run dev:web\"",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
