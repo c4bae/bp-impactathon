@@ -36,6 +36,15 @@ pool.on('connect', () => {
   initDb().catch(() => { /* next connect retries */ });
 });
 
+// Without this, an idle client hitting a backend-side disconnect (exactly
+// what `db:reset` / `pg_terminate_backend` do, but also any transient DB
+// blip) emits an unhandled 'error' on the pool — Node treats that as an
+// uncaught exception and kills the whole process. pg removes the broken
+// client from the pool automatically; we just need to not crash on it.
+pool.on('error', (err) => {
+  console.error('[pg pool error]', err.message);
+});
+
 // Safety net for the one request that races the re-registration above: these
 // enum-array columns must never reach a client as a raw "{a,b}" string.
 const ENUM_ARRAY_COLS = ['category', 'accommodation_tags', 'needs_flagged', 'accommodation_needs'];

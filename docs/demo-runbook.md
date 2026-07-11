@@ -1,9 +1,11 @@
-# Live demo runbook — 2:30, one event, the whole loop
+# Live demo runbook — one event, the whole loop, all 4 contributors, live AI
 
-One story, one event: **Community Kitchen: Cook & Share**. Ava signs up, hits a
-barrier, becomes the fifth report that flips the badge; the organizer sees it,
-fixes it, resolves it; seekers see the confirmed badge. Every contributor's
-work appears on screen; the accountability loop is the spine.
+One spine story, one event: **Community Kitchen: Cook & Share**. Ava signs up,
+hits a barrier, becomes the fifth report that flips the badge; the organizer
+sees it, fixes it, resolves it; seekers see the confirmed badge. Two short
+detours (Quick Picks + Route, and voice event creation) put every contributor
+and both live AI vendors on screen without breaking the spine. Run with
+`AI_MODE=live` — OpenRouter and ElevenLabs are both real, not mocked.
 
 ## Before you go on stage
 
@@ -20,12 +22,23 @@ Then in the browser: header dropdown → switch to **Ava**, open **Discover**
 
 ## The script
 
-**0:00 – 0:25 · Discover (seeker side)**
+**0:00 – 0:25 · Discover (seeker side, C1)**
 On the feed: *"This is Ava's feed — ranked for her, sensory-friendly events
-first, in plain language, with a Read Aloud on every card. See these badges?
-They're earned from attendee feedback, not self-declared by organizers.
-Community Kitchen says 'Not yet verified' — remember it."*
+first, in plain language."* → tap **Read this aloud** on any card. *"That's a
+live ElevenLabs voice, not a browser fallback — same vendor we'll use twice
+more."* → stop it. *"See these badges? They're earned from attendee feedback,
+not self-declared by organizers. Community Kitchen says 'Not yet verified' —
+remember it."*
 → Click **Community Kitchen: Cook & Share**.
+
+**0:25 – 0:45 · Quick Picks + Route detour (C2)**
+Nav → **Quick Picks**: *"One more personalization signal — a daily tap."* Vote
+👍 on whatever category appears, then **See your feed** and point at the
+re-order + the "matches your Quick Picks" chip. *"Ranking updates live."* Open
+**Adaptive Basketball Drop-In → How do I get there?**: *"Step-free routing,
+real map, and it can speak the directions — ElevenLabs again."* Tap **Speak
+directions** for a couple seconds, stop it, then head back to Community
+Kitchen's detail page to pick the spine back up.
 
 **0:25 – 0:50 · Sign up (privacy moment)**
 On the detail page click **Sign me up**. On the form: *"Ava can optionally tell
@@ -58,10 +71,21 @@ confirmed** with the confirmation message.
 
 **2:10 – 2:30 · Close the loop**
 → Nav: **Discover**. Kitchen card now shows **Accessibility confirmed ✓**.
-*"Report → aggregate past a privacy threshold → badge → fix → confirmed.
-Honest caveat: the threshold of five is a demo value — real calibration
-happens with KW Hab. But the loop is real, and it runs end to end, offline,
-on what you just watched."*
+*"Report → aggregate past a privacy threshold → badge → fix → confirmed."*
+
+**2:30 – 3:00 · Post an event by voice (C4, the AI showcase)**
+→ Nav: **Post Event → By voice**. *"Staff can post by speaking. I'll use the
+sample so we're not at the mercy of a conference mic — the transcript itself
+is genuinely spoken and Scribe-transcribed, verified separately."* Click
+**Skip recording — use a sample → Structure the details** — *"that's live
+OpenRouter turning free speech into structured fields, right now."* Click
+**Read this back to me** — *"and live ElevenLabs reads it back for staff to
+confirm before anything publishes — never guessing a date, never publishing
+unconfirmed."* Fill the date, **Publish event**, then jump back to **Discover**
+and show it live in the feed.
+*"Honest caveat: the threshold of five is a demo value — real calibration
+happens with KW Hab. But the loop is real, and both AI vendors you just saw
+are live, not mocked."*
 
 ## Say-out-loud checklist (judges care)
 

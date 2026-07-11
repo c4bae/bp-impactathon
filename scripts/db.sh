@@ -38,6 +38,14 @@ case "${1:-}" in
     fi
     ;;
   reset)
+    # The dev server holds an open connection pool to $DB, so a plain dropdb
+    # fails ("database is being accessed by other users") any time this is
+    # run while `npm run dev` is up — exactly when you want to rewind a demo.
+    # Terminate other backends on $DB first (the server's pg client just
+    # reconnects on its next query).
+    psql -q -d postgres -v ON_ERROR_STOP=1 -c \
+      "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB' AND pid <> pg_backend_pid();" \
+      >/dev/null 2>&1 || true
     dropdb --if-exists "$DB"
     createdb "$DB"
     load
