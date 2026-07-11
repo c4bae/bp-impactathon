@@ -1,6 +1,6 @@
 // Contributor 1 — shared event-detail content + fetch hook, rendered by
 // both the full page (/events/:id) and the slide-over panel on Discover.
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Ticket } from 'lucide-react';
 import { api, ApiError, type EventDetail } from '../../api/client';
@@ -9,6 +9,8 @@ import { useReadAloud } from '../../hooks/useReadAloud';
 import { CATEGORY_LABELS } from '../../../../shared/models';
 import { formatCost, formatLongDate, formatTimeRange } from './format';
 import { EventCover } from './covers';
+
+const EventLocationMap = lazy(() => import('./EventLocationMap').then((module) => ({ default: module.EventLocationMap })));
 
 export type DetailStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'error';
 
@@ -32,9 +34,10 @@ export function useEventDetail(id: string | null | undefined) {
   return { detail, status, retry: () => setAttempt((a) => a + 1) };
 }
 
-export function EventDetailBody({ detail, titleAs: TitleTag = 'h1' }: {
+export function EventDetailBody({ detail, titleAs: TitleTag = 'h1', showLocationMap = false }: {
   detail: EventDetail;
   titleAs?: 'h1' | 'h2';
+  showLocationMap?: boolean;
 }) {
   const { speak, stop, speaking } = useReadAloud();
   useEffect(() => stop, [stop]);
@@ -111,6 +114,12 @@ export function EventDetailBody({ detail, titleAs: TitleTag = 'h1' }: {
         )}
         <p className="m-0 text-sm text-muted">Hosted by {detail.org_name}</p>
       </Card>
+
+      {showLocationMap && detail.location_lat != null && detail.location_lng != null && (
+        <Suspense fallback={<Card className="h-56 rounded-2xl flex items-center justify-center text-muted">Loading location map…</Card>}>
+          <EventLocationMap event={detail} />
+        </Suspense>
+      )}
 
       {detail.plain_language_description && (
         <section>

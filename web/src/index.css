@@ -39,3 +39,25 @@
   @apply bg-brand text-white px-4 py-2;
 }
 .skip-link:focus { left: 0; }
+
+/* Accessible event markers used by the 3D discovery map. */
+.event-map-pin {
+  width: 34px;
+  height: 34px;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 0;
+  background: #1f6f5c;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 35%);
+  cursor: pointer;
+  transform: rotate(-45deg);
+}
+.event-map-pin::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  inset: 9px;
+  border-radius: 50%;
+  background: white;
+}
+.event-map-pin:focus-visible { outline-color: #f5b942; }
