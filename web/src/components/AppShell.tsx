@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <header className="border-b border-black/5 bg-white/70 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <NavLink to="/" className="font-bold text-brand-dark text-lg">KW Hab · Discover</NavLink>
+          <NavLink to="/" className="font-bold text-brand-dark text-lg">KW Hub</NavLink>
           <DemoSwitcher />
         </div>
         <nav aria-label="Primary" className="max-w-6xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
