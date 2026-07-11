@@ -28,8 +28,26 @@ export async function initDb(): Promise<void> {
   }
 }
 
+// `npm run db:reset` recreates the database, giving the enum types NEW OIDs
+// while the old parser registrations point at the old ones — every enum array
+// would come back as a raw "{a,b}" string until a server restart. The reset
+// kills our connections, so re-resolve the OIDs whenever the pool reconnects.
+pool.on('connect', () => {
+  initDb().catch(() => { /* next connect retries */ });
+});
+
+// Safety net for the one request that races the re-registration above: these
+// enum-array columns must never reach a client as a raw "{a,b}" string.
+const ENUM_ARRAY_COLS = ['category', 'accommodation_tags', 'needs_flagged'];
+
 export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
   const res = await pool.query(text, params);
+  for (const row of res.rows) {
+    for (const col of ENUM_ARRAY_COLS) {
+      const v = (row as any)[col];
+      if (typeof v === 'string' && v.startsWith('{')) (row as any)[col] = parseEnumArray(v);
+    }
+  }
   return res.rows as T[];
 }
 
