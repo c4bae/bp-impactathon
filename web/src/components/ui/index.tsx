@@ -5,6 +5,10 @@
 // =====================================================================
 import React from 'react';
 import {
+  Check, AlertTriangle, HelpCircle, Volume2, VolumeX, MapPin,
+  type LucideIcon,
+} from 'lucide-react';
+import {
   ACCOMMODATION_LABELS, BADGE_LABELS,
   type AccommodationTag, type BadgeState,
 } from '../../../../shared/models';
@@ -40,15 +44,15 @@ export function Card({ className = '', children, ...rest }: React.HTMLAttributes
 
 // ---- Accessibility badge --------------------------------------------
 export function AccessibilityBadge({ state }: { state: BadgeState }) {
-  const map: Record<BadgeState, { cls: string; icon: string }> = {
-    confirmed: { cls: 'bg-brand-light text-badge-confirmed', icon: '✓' },
-    reported_gap: { cls: 'bg-orange-100 text-badge-gap', icon: '⚠' },
-    not_yet_verified: { cls: 'bg-gray-100 text-badge-unverified', icon: '○' },
+  const map: Record<BadgeState, { cls: string; Icon: LucideIcon }> = {
+    confirmed: { cls: 'bg-brand-light text-badge-confirmed', Icon: Check },
+    reported_gap: { cls: 'bg-orange-100 text-badge-gap', Icon: AlertTriangle },
+    not_yet_verified: { cls: 'bg-gray-100 text-badge-unverified', Icon: HelpCircle },
   };
-  const { cls, icon } = map[state];
+  const { cls, Icon } = map[state];
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium ${cls}`}>
-      <span aria-hidden>{icon}</span>
+      <Icon className="w-3.5 h-3.5" aria-hidden />
       {BADGE_LABELS[state]}
     </span>
   );
@@ -73,7 +77,9 @@ export function Toggle({ pressed, onToggle, label }: { pressed: boolean; onToggl
       onClick={onToggle}
       className={`inline-flex items-center gap-2 min-h-[44px] px-3 rounded-lg border ${pressed ? 'border-brand bg-brand-light text-brand-dark' : 'border-black/15'}`}
     >
-      <span aria-hidden>{pressed ? '🔊' : '🔈'}</span>
+      {pressed
+        ? <VolumeX className="w-4 h-4" aria-hidden />
+        : <Volume2 className="w-4 h-4" aria-hidden />}
       {label}
     </button>
   );
@@ -116,7 +122,7 @@ export function DistanceBadge({ km }: { km: number | null }) {
   if (km == null) return null;
   return (
     <span className="inline-flex items-center gap-1 text-sm text-muted">
-      <span aria-hidden>📍</span>{km} km away
+      <MapPin className="w-3.5 h-3.5" aria-hidden />{km} km away
     </span>
   );
 }

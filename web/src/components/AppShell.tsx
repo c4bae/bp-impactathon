@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { DemoSwitcher } from './DemoSwitcher';
 
-const navItems = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/feed', label: 'Discover' },
+const seekerNav = [
+  { to: '/', label: 'Discover', end: true },
   { to: '/calendar', label: 'Calendar' },
   { to: '/quick-picks', label: 'Quick Picks' },
   { to: '/my-signups', label: 'My Signups' },
-  { to: '/org', label: 'Org Dashboard' },
+];
+const orgNav = [
+  { to: '/org', label: 'Dashboard' },
   { to: '/admin/new', label: 'Post Event' },
 ];
 
@@ -28,12 +29,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <header className="border-b border-black/5 bg-white/70 backdrop-blur">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <NavLink to="/" className="font-bold text-brand-dark text-lg">KW Hab · Discover</NavLink>
           <DemoSwitcher />
         </div>
-        <nav aria-label="Primary" className="max-w-3xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
-          {navItems.map((n) => (
+        <nav aria-label="Primary" className="max-w-6xl mx-auto px-2 pb-2 flex gap-1 items-center overflow-x-auto">
+          {seekerNav.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
@@ -45,10 +46,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {n.label}
             </NavLink>
           ))}
+          <span className="flex-1" aria-hidden />
+          <span className="text-xs text-muted uppercase tracking-wide pl-2 hidden sm:inline">For organizers</span>
+          {orgNav.map((n) => (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              className={({ isActive }) =>
+                `px-3.5 py-2 rounded-full text-sm whitespace-nowrap ${isActive ? 'bg-brand-light text-brand-dark font-medium' : 'text-muted/80 hover:bg-brand-light/60'}`
+              }
+            >
+              {n.label}
+            </NavLink>
+          ))}
         </nav>
       </header>
 
-      <main id="main" className="flex-1 max-w-3xl w-full mx-auto px-4 py-6">
+      <main id="main" className="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
         {children}
       </main>
 
