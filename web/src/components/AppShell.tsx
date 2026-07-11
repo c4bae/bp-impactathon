@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <header className="border-b border-black/10">
+      <header className="border-b border-black/5 bg-white/70 backdrop-blur">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <NavLink to="/" className="font-bold text-brand-dark text-lg">KW Hab · Discover</NavLink>
           <DemoSwitcher />
@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               to={n.to}
               end={n.end}
               className={({ isActive }) =>
-                `px-3 py-2 rounded-lg text-sm whitespace-nowrap ${isActive ? 'bg-brand-light text-brand-dark font-medium' : 'text-muted hover:bg-brand-light/60'}`
+                `px-3.5 py-2 rounded-full text-sm whitespace-nowrap ${isActive ? 'bg-brand-light text-brand-dark font-medium' : 'text-muted hover:bg-brand-light/60'}`
               }
             >
               {n.label}

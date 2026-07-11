@@ -5,7 +5,7 @@
 /* Accessibility baseline — applies app-wide, do not remove. */
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
-  body { @apply bg-white text-ink; font-family: system-ui, -apple-system, sans-serif; }
+  body { @apply bg-paper text-ink; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
 
   /* Always-visible focus ring for keyboard users. */
   :focus-visible {

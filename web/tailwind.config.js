@@ -12,6 +12,7 @@ export default {
         },
         ink: '#1a1a1a',        // body text (contrast 15:1 on white)
         muted: '#5c5c5c',      // secondary text (AA on white)
+        paper: '#faf9f7',      // soft off-white page background (Luma-style)
         badge: {
           confirmed: '#1f6f5c',
           gap: '#9a3412',      // reported_gap — warm, not alarmist red
@@ -21,6 +22,9 @@ export default {
       fontSize: {
         // Bump the base for readability; plain-language audience.
         base: ['1.0625rem', { lineHeight: '1.6' }],
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
     },
   },
