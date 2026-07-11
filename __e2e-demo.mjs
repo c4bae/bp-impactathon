@@ -66,7 +66,7 @@ for (let i = 0; i < 3; i++) {
 check('Quick Picks reaches a done state', await page.getByText(/for today/).isVisible({ timeout: 5000 }));
 await page.getByRole('link', { name: 'See your feed' }).click();
 await page.waitForURL('**/feed', { timeout: 10000 });
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 check('feed reloads after Quick Picks', true);
 
 await page.goto(`${BASE}/events/${BASKETBALL}`);
@@ -85,9 +85,12 @@ await speakToggle.click();
 // ---- 0:45 Detail -> signup --------------------------------------------
 console.log('--- Beat 2: Sign up ---');
 await page.goto(`${BASE}/feed`);
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
+// Plain click on a card title opens the Discover slide-over (role=dialog),
+// not full navigation — the CTAs inside it (shared with the full page via
+// EventDetailBody) are plain, un-intercepted Links.
 await kitchenCard().getByRole('link', { name: /Community Kitchen/ }).click();
-await page.locator('h1', { hasText: KITCHEN_TITLE }).waitFor({ timeout: 10000 });
+await page.getByRole('dialog', { name: 'Event details' }).getByRole('heading', { name: KITCHEN_TITLE }).waitFor({ timeout: 10000 });
 await page.getByRole('link', { name: 'Sign me up' }).click();
 await page.locator('h1', { hasText: 'Sign up' }).waitFor({ timeout: 10000 });
 await page.waitForFunction(
@@ -181,7 +184,7 @@ const publishedTitle = (await page.locator('strong').first().textContent())?.tri
 check('published event has a real extracted title (not the raw transcript)',
   publishedTitle.length > 0 && publishedTitle.length < 80, publishedTitle);
 await page.goto(`${BASE}/feed`);
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 // isVisible() checks the DOM *right now* and never retries — the feed's
 // fetch may still be in flight a beat after goto(). waitFor() actually polls.
 const feedHasNewEvent = await page.getByText(publishedTitle || '__nomatch__').first()

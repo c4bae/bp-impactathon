@@ -5,7 +5,11 @@
 /* Accessibility baseline — applies app-wide, do not remove. */
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
-  body { @apply bg-paper text-ink; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  body { @apply bg-paper text-ink font-sans; }
+
+  /* Type system: Bricolage Grotesque for headings/buttons/labels,
+     Atkinson Hyperlegible (body default above) for reading text. */
+  h1, h2, h3, h4, h5, h6, button, label, legend { @apply font-display; }
 
   /* Always-visible focus ring for keyboard users. */
   :focus-visible {

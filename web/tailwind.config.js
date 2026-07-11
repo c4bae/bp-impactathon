@@ -24,7 +24,8 @@ export default {
         base: ['1.0625rem', { lineHeight: '1.6' }],
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['"Atkinson Hyperlegible"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
       },
     },
   },

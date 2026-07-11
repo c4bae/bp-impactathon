@@ -7,17 +7,17 @@ import { useSession } from '../lib/session';
 // Two disjoint nav sets — which one shows depends on the View toggle in
 // DemoSwitcher, mirroring the two real audiences this product has (seekers
 // vs. organizers). Neither list gates route access, just what's in the nav.
+// '/' and '/feed' render the same Discover screen now, so just one entry.
 // Calendar is genuinely dual-purpose (browses the seeker feed, but its
 // modal also does org-owned create/edit/delete) — it's in both lists.
 const USER_NAV = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/feed', label: 'Discover' },
+  { to: '/', label: 'Discover', end: true },
   { to: '/calendar', label: 'Calendar' },
   { to: '/quick-picks', label: 'Quick Picks' },
   { to: '/my-signups', label: 'My Signups' },
 ];
 const ORG_NAV = [
-  { to: '/org', label: 'Org Dashboard', end: true },
+  { to: '/org', label: 'Dashboard', end: true },
   { to: '/calendar', label: 'Calendar' },
   { to: '/admin/new', label: 'Post Event' },
 ];
@@ -39,11 +39,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <header className="border-b border-black/5 bg-white/70 backdrop-blur">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <NavLink to="/" className="font-bold text-brand-dark text-lg">KW Hab · Discover</NavLink>
           <DemoSwitcher />
         </div>
-        <nav aria-label="Primary" className="max-w-3xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
+        <nav aria-label="Primary" className="max-w-6xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
           {navItems.map((n) => (
             <NavLink
               key={n.to}
@@ -59,7 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
 
-      <main id="main" className="flex-1 max-w-3xl w-full mx-auto px-4 py-6">
+      <main id="main" className="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
         {children}
       </main>
 

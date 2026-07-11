@@ -1,7 +1,7 @@
 // Community calendar — decluttered take on the reference Teamup embed.
 // Three views (Month / Week / List) instead of eleven; the category color
 // legend doubles as the filter; add/edit/view all happen in one modal.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../api/client';
 import { useSession } from '../../lib/session';
 import { Button, Card, Spinner } from '../../components/ui';
@@ -13,7 +13,8 @@ import {
 } from './calendarUtils';
 import { MiniMonth } from './MiniMonth';
 import { EventModal, type CalendarModal } from './EventModal';
-import { ListView, MonthGrid, WeekView } from './views';
+import { DictateEventPanel, type DictationDraft } from './DictateEventPanel';
+import { DICTATION_PREVIEW_ID, ListView, MonthGrid, WeekView } from './views';
 
 type View = 'month' | 'week' | 'list';
 const VIEW_LABELS: Record<View, string> = { month: 'Month', week: 'Week', list: 'List' };
@@ -27,6 +28,9 @@ export function CalendarPage() {
   const [cats, setCats] = useState<EventCategory[]>([]);
   const [orgFilter, setOrgFilter] = useState('');
   const [modal, setModal] = useState<CalendarModal | null>(null);
+  const [dictating, setDictating] = useState(false);
+  const [dictation, setDictation] = useState<DictationDraft | null>(null);
+  const lastJumpDate = useRef('');
 
   const load = useCallback(() => {
     setError('');
@@ -56,6 +60,47 @@ export function CalendarPage() {
     [filtered],
   );
 
+  // ---- live dictation: ghost chip + follow the extracted time slot ----
+  const handleDictationDraft = useCallback((d: DictationDraft) => {
+    setDictation(d);
+    if (d.date_start && d.date_start !== lastJumpDate.current) {
+      lastJumpDate.current = d.date_start;
+      setCursor(new Date(d.date_start));
+      setView('week'); // week view makes the time slot visible as it moves
+    }
+  }, []);
+
+  const stopDictation = useCallback(() => {
+    setDictating(false);
+    setDictation(null);
+    lastJumpDate.current = '';
+  }, []);
+
+  const previewEvent = useMemo<RankedEvent | null>(() => {
+    if (!dictating || !dictation?.date_start) return null;
+    return {
+      id: DICTATION_PREVIEW_ID,
+      org_id: '', org_name: '',
+      title: dictation.title || 'New event…',
+      description: '', plain_language_description: null,
+      category: dictation.category,
+      date_start: new Date(dictation.date_start).toISOString(),
+      date_end: null,
+      cost: dictation.cost, cost_amount: null, age_group: null,
+      location_lat: null, location_lng: null,
+      location_address: dictation.location_address || null,
+      accommodation_tags: dictation.accommodation_tags,
+      accessibility_badge_state: 'not_yet_verified',
+      created_via: 'voice', created_at: '',
+      distance_km: null, score: 0, score_reasons: [],
+    };
+  }, [dictating, dictation]);
+
+  const viewEvents = useMemo(
+    () => (previewEvent ? [...filtered, previewEvent] : filtered),
+    [filtered, previewEvent],
+  );
+
   const navigate = (dir: 1 | -1) =>
     setCursor((c) => view === 'month'
       ? new Date(c.getFullYear(), c.getMonth() + dir, 1)
@@ -69,16 +114,23 @@ export function CalendarPage() {
   const openEvent = (e: RankedEvent) => setModal({ kind: 'view', event: e });
 
   // Break out of the app shell's narrow column — a calendar needs width.
+  // While dictating, pad right so the panel doesn't cover the calendar.
   return (
-    <div className="relative left-1/2 -translate-x-1/2 w-[min(100vw-2rem,72rem)]">
+    <div className={`relative left-1/2 -translate-x-1/2 w-[min(100vw-2rem,72rem)] ${dictating ? 'xl:pr-[29rem]' : ''}`}>
       <div className="flex flex-wrap items-end justify-between gap-2 mb-4">
         <div>
           <h1 className="text-xl font-bold text-brand-dark">Community calendar</h1>
           <p className="text-muted text-sm">Inclusive, accessible events across Waterloo Region.</p>
         </div>
-        <Button type="button" onClick={() => setModal({ kind: 'create', date: cursor })}>
-          + Add event
-        </Button>
+        <div className="flex gap-2">
+          <Button type="button" variant="secondary" disabled={dictating}
+            onClick={() => { setModal(null); setDictating(true); }}>
+            🎙 Dictate event
+          </Button>
+          <Button type="button" onClick={() => setModal({ kind: 'create', date: cursor })}>
+            + Add event
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[240px_1fr] items-start">
@@ -172,14 +224,14 @@ export function CalendarPage() {
             view === 'month' ? (
               <MonthGrid
                 cursor={cursor}
-                events={filtered}
+                events={viewEvents}
                 onOpenEvent={openEvent}
                 onDayClick={(d) => { setCursor(d); setView('week'); }}
               />
             ) : view === 'week' ? (
-              <WeekView cursor={cursor} events={filtered} onOpenEvent={openEvent} />
+              <WeekView cursor={cursor} events={viewEvents} onOpenEvent={openEvent} />
             ) : (
-              <ListView events={filtered} onOpenEvent={openEvent} />
+              <ListView events={viewEvents} onOpenEvent={openEvent} />
             )
           )}
         </Card>
@@ -191,6 +243,14 @@ export function CalendarPage() {
           onClose={() => setModal(null)}
           onChanged={() => { setModal(null); load(); }}
           onEdit={(e) => setModal({ kind: 'edit', event: e })}
+        />
+      )}
+
+      {dictating && (
+        <DictateEventPanel
+          onClose={stopDictation}
+          onDraftChange={handleDictationDraft}
+          onPublished={() => { stopDictation(); load(); }}
         />
       )}
     </div>

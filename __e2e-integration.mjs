@@ -48,25 +48,28 @@ const row = (title) => page.locator('li', { hasText: title });
 const cardTitleOrder = async () =>
   page.locator('h2 a').allTextContents();
 
-// ============== Seam A: Home filters -> Feed query params ==============
-console.log('--- Seam A: Home (C1) filter choices reach Feed (C1) ---');
+// ============== Seam A: category filter pill -> Feed query params =======
+// Home and Feed were merged into one screen in the redesign (HomePage now
+// just renders FeedPage) — filtering moved from a separate question wizard
+// to inline pills directly on Discover. Test that seam instead.
+console.log('--- Seam A: Discover (C1) category pill filters in place ---');
 await asUser(USERS.gio, '/');
-await page.getByRole('button', { name: 'Arts', exact: true }).click();
-await page.getByRole('button', { name: 'Show me events' }).click();
-await page.waitForURL('**/feed?categories=arts');
-check('Home encodes chosen category into the /feed URL',
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
+const artsPill = page.getByRole('group', { name: 'Filter by category' }).getByRole('button', { name: /Arts/ });
+await artsPill.click();
+await page.waitForFunction(() => location.search.includes('categories=arts'), null, { timeout: 5000 });
+check('clicking the Arts pill encodes the category into the URL in place (no separate Home step)',
   page.url().includes('categories=arts'));
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
 const filteredTitles = await cardTitleOrder();
-check('Feed applies the Home category filter (only arts events shown)',
+check('Feed applies the category filter (only arts events shown)',
   filteredTitles.length > 0 && filteredTitles.every((t) => t === 'Open Studio: Paint Night'),
   filteredTitles.join(', '));
-check('active filter chip is visible on Feed', await page.getByText('Arts', { exact: true }).isVisible());
+check('active filter pill shows selected state', await artsPill.getAttribute('aria-pressed') === 'true');
 
 // ============== Seam B: Quick Picks (C2) -> Feed ranking (C1) ==========
 console.log('--- Seam B: Quick Picks (C2) vote shifts Feed (C1) ranking ---');
 await asUser(USERS.fin, '/feed');
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 const beforeOrder = await cardTitleOrder();
 const beforeRank = beforeOrder.indexOf('Open Studio: Paint Night');
 check('Paint Night present in Fin’s feed before any Quick Picks',
@@ -86,7 +89,7 @@ check('Quick Picks reaches a done state after answering', await page.getByText(/
 
 await page.getByRole('link', { name: 'See your feed' }).click();
 await page.waitForURL('**/feed');
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 const afterOrder = await cardTitleOrder();
 const afterRank = afterOrder.indexOf('Open Studio: Paint Night');
 check('Paint Night rank improves (or stays top) after an Arts 👍 Quick Pick, OR the arts vote wasn’t offered this run',
@@ -101,12 +104,16 @@ check('Feed surfaces "matches your Quick Picks" reason after the vote (score_rea
 // ============== Seam C: Feed -> Detail -> Route (C1 -> C2) =============
 console.log('--- Seam C: Feed (C1) -> Event detail (C1) -> Route guidance (C2) ---');
 await asUser(USERS.demo, '/feed');
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
+// Plain click on a card title opens the Discover slide-over (role=dialog),
+// not full navigation — the CTAs inside it (shared with the full page via
+// EventDetailBody) are plain, un-intercepted Links, so clicking through
+// them still exercises real react-router navigation for the next step.
 await page.getByRole('link', { name: 'Adaptive Basketball Drop-In' }).click();
-await page.waitForURL('**/events/**');
-await page.locator('h1', { hasText: 'Adaptive Basketball Drop-In' }).waitFor({ timeout: 10000 });
-check('Event detail loaded from Feed card link', true);
-const getThereLink = page.getByRole('link', { name: 'How do I get there?' });
+const dialog = page.getByRole('dialog', { name: 'Event details' });
+await dialog.getByRole('heading', { name: 'Adaptive Basketball Drop-In' }).waitFor({ timeout: 10000 });
+check('Event detail loaded from Feed card link (Discover slide-over)', true);
+const getThereLink = dialog.getByRole('link', { name: 'How do I get there?' });
 check('Detail shows "How do I get there?" CTA when C2 has a route for this event',
   await getThereLink.isVisible());
 await getThereLink.click();
@@ -133,9 +140,10 @@ check('No "How do I get there?" CTA for an event with no seeded route',
 // ============== Seam D: Feed -> Detail -> Signup (C1 -> C3) ============
 console.log('--- Seam D: Feed (C1) -> Event detail (C1) -> Signup (C3) ---');
 await asUser(USERS.demo, '/feed');
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 await page.getByRole('link', { name: 'Open Studio: Paint Night' }).click();
-await page.waitForURL('**/events/**');
+await page.getByRole('dialog', { name: 'Event details' })
+  .getByRole('heading', { name: 'Open Studio: Paint Night' }).waitFor({ timeout: 10000 });
 await page.getByRole('link', { name: 'Sign me up' }).click();
 await page.waitForURL(`**/signup/${PAINT}`);
 await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
@@ -183,7 +191,7 @@ check('Server-side badge reaches reported_gap after enough accommodation_gap rep
   after.accessibility_badge_state === 'reported_gap', after.accessibility_badge_state);
 
 await asUser(USERS.demo, '/feed');
-await page.locator('h1', { hasText: 'Events for you' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 await page.getByText('Open Studio: Paint Night').first().waitFor({ timeout: 10000 });
 const flippedCard = row('Open Studio: Paint Night').first();
 check('Badge flip from the accountability loop (C3) is visible on the Feed card (C1) without a hard refresh workaround',
