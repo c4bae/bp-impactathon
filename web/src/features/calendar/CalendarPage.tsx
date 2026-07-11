@@ -127,7 +127,7 @@ export function CalendarPage() {
           <div className="flex gap-2">
             <Button type="button" variant="secondary" disabled={dictating}
               onClick={() => { setModal(null); setDictating(true); }}>
-              🎙 Dictate event
+              Dictate event
             </Button>
             <Button type="button" onClick={() => setModal({ kind: 'create', date: cursor })}>
               + Add event

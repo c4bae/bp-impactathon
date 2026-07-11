@@ -118,7 +118,7 @@ export function EventsMap({ events, onOpen }: {
       const modeSelect = document.createElement('select');
       modeSelect.className = 'mt-2 min-h-[36px] rounded-lg border border-black/15 bg-white px-2 text-xs';
       modeSelect.setAttribute('aria-label', `Transportation mode to ${event.title}`);
-      ([['walking', '🚶 Walking'], ['cycling', '🚲 Cycling'], ['driving', '🚗 Driving'], ['transit', '🚌 Transit']] as [TravelMode, string][])
+      ([['walking', 'Walking'], ['cycling', 'Cycling'], ['driving', 'Driving'], ['transit', 'Transit']] as [TravelMode, string][])
         .forEach(([value, label]) => {
           const option = document.createElement('option');
           option.value = value;

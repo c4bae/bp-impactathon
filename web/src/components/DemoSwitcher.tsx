@@ -27,7 +27,7 @@ export function DemoSwitcher() {
           view === 'user' ? 'bg-brand text-white' : 'text-muted hover:bg-brand-light'
         }`}
       >
-        <span aria-hidden>👤</span> User
+        User
       </button>
       <button
         type="button"
@@ -37,7 +37,7 @@ export function DemoSwitcher() {
           view === 'org' ? 'bg-brand text-white' : 'text-muted hover:bg-brand-light'
         }`}
       >
-        <span aria-hidden>🏢</span> Org
+        Org
       </button>
     </div>
   );

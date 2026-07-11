@@ -250,7 +250,7 @@ export function DictateEventPanel({ onClose, onPublished, onDraftChange }: {
       <div className="p-5 pb-0">
         <div className="flex items-start justify-between gap-3 mb-2">
           <h2 className="text-lg font-bold text-brand-dark">
-            {listening || phase === 'starting' ? '🎙 Dictate your event' : phase === 'finalizing' ? 'Wrapping up…' : 'Confirm your event'}
+            {listening || phase === 'starting' ? 'Dictate your event' : phase === 'finalizing' ? 'Wrapping up…' : 'Confirm your event'}
           </h2>
           <button type="button" onClick={onClose} aria-label="Cancel dictation and close"
             className="h-9 w-9 rounded-lg text-muted hover:bg-brand-light shrink-0">✕</button>
@@ -367,7 +367,7 @@ export function DictateEventPanel({ onClose, onPublished, onDraftChange }: {
               onClick={() => (speaking
                 ? stopSpeaking()
                 : speak(`Please confirm: ${draft.title}. ${draft.date_start ? `Starting ${new Date(draft.date_start).toLocaleString()}.` : ''} ${draft.description}`))}>
-              {speaking ? '◼ Stop reading' : '🔊 Read it back to me'}
+              {speaking ? '◼ Stop reading' : 'Read it back to me'}
             </Button>
           </>
         )}

@@ -118,7 +118,7 @@ export function EventLocationMap({ event }: { event: EventDetail }) {
       <fieldset className="mt-3">
         <legend className="mb-2 text-sm font-medium">Travel by</legend>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {([['walking', '🚶 Walking'], ['cycling', '🚲 Cycling'], ['driving', '🚗 Driving'], ['transit', '🚌 Transit']] as [TravelMode, string][]).map(([mode, label]) => (
+          {([['walking', 'Walking'], ['cycling', 'Cycling'], ['driving', 'Driving'], ['transit', 'Transit']] as [TravelMode, string][]).map(([mode, label]) => (
             <button
               key={mode}
               type="button"

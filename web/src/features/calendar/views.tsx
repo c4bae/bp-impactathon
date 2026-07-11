@@ -22,7 +22,6 @@ function EventChip({ event, onOpen }: { event: RankedEvent; onOpen: OpenEvent })
         title={event.title}
         className="block w-full rounded border-2 border-dashed border-brand bg-brand-light text-brand-dark px-1.5 py-1 text-xs leading-tight font-medium animate-pulse"
       >
-        <span aria-hidden>🎙 </span>
         <span className="font-semibold">{fmtTime(event.date_start)}</span>{' '}
         <span className="line-clamp-2">{event.title}</span>
       </span>

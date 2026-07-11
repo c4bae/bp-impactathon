@@ -125,16 +125,15 @@ export function SignupPage() {
       <Card className="mb-5 border-2 border-brand bg-brand-light">
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-semibold text-brand-dark">
-            <span aria-hidden>⚡</span> Quick signup
+            Quick signup
           </span>
           <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-semibold text-brand-dark">
-            <span aria-hidden>🔒</span> Private signup
+            Private signup
           </span>
         </div>
         <p className="font-medium mb-1">One tap and you&rsquo;re on the list.</p>
         <p className="text-sm text-brand-dark mb-4">
-          Nothing else is asked, nothing is shared — not your name, not any access
-          need. We never require that information to sign you up.
+          Nothing else is asked or shared — not your name, not any access need.
         </p>
         <Button
           type="button"
@@ -184,8 +183,7 @@ export function SignupPage() {
           <fieldset>
             <legend className="font-medium mb-1">What helps you take part? (optional)</legend>
             <p className="text-muted text-sm mb-3">
-              You can tell us what helps you take part. This is optional, only used to
-              improve access, and never a medical label.
+              Only used to improve access, never a medical label.
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {ALL_TAGS.map((tag) => {

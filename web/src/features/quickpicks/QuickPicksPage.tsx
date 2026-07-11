@@ -8,7 +8,7 @@ import { formatCost, formatEventDate } from '../discovery/format';
 import type { QuickPickCandidate } from '../../../../shared/contracts';
 
 // Contributor 2 — Quick Picks: daily swipe deck of specific EVENTS (not
-// broad categories). Each 👍/👎 feeds the ranking heuristic behind /feed —
+// broad categories). Each vote feeds the ranking heuristic behind /feed —
 // the server derives category affinity from what the swiped events have in
 // common, so this screen just needs to submit the swipe. `embedded` lets it
 // render inline at the top of Discover instead of as its own /quick-picks
@@ -65,7 +65,7 @@ export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
     return (
       <Card className={`${embedded ? 'w-full bg-brand-light/60 border-brand/20' : 'max-w-md mx-auto'} text-center`}>
         <Heading className="text-2xl font-semibold mb-2">
-          {events.length > 0 ? 'That’s it for today! 🎉' : 'All caught up! 🎉'}
+          {events.length > 0 ? 'That’s it for today!' : 'All caught up!'}
         </Heading>
         <p className={`text-muted ${embedded ? 'mb-0' : 'mb-4'}`}>
           Your picks help us rank events you’ll actually like. Come back tomorrow for more.
@@ -121,10 +121,10 @@ export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
         <p className="mb-6 text-left sm:text-center">{oneLiner}</p>
         <div className="flex justify-center gap-3">
           <Button onClick={() => vote(ev.id, true)} className="min-w-[130px] text-lg">
-            <span aria-hidden>👍</span> Interested
+            Interested
           </Button>
           <Button variant="secondary" onClick={() => vote(ev.id, false)} className="min-w-[130px] text-lg">
-            <span aria-hidden>👎</span> Not for me
+            Not for me
           </Button>
         </div>
       </Card>

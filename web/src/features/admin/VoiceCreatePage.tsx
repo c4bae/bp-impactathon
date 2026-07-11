@@ -107,7 +107,7 @@ export function VoiceCreatePage() {
           type="button" variant="secondary"
           onClick={() => (speaking ? stop() : speak(`Please confirm: ${draft.title}. ${draft.description}`))}
         >
-          {speaking ? '◼ Stop reading' : '🔊 Read this back to me'}
+          {speaking ? '◼ Stop reading' : 'Read this back to me'}
         </Button>
         <EventForm
           initial={draft}
@@ -138,7 +138,7 @@ export function VoiceCreatePage() {
         <div className="flex flex-wrap items-center gap-3">
           {!recording ? (
             <Button type="button" onClick={startRecording} disabled={busy !== null}>
-              🎙 Start recording
+              Start recording
             </Button>
           ) : (
             <Button type="button" onClick={stopRecording}>◼ Stop recording</Button>

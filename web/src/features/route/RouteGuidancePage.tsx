@@ -110,7 +110,7 @@ export function RouteGuidancePage() {
         <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
           <div className="flex gap-1">
             <dt className="text-muted">Mode:</dt>
-            <dd>{route.transit_mode === 'bus' ? '🚌 Bus' : '🚶 Walking'}</dd>
+            <dd>{route.transit_mode === 'bus' ? 'Bus' : 'Walking'}</dd>
           </div>
           {route.nearest_accessible_stop && (
             <div className="flex gap-1">
