@@ -127,6 +127,9 @@ CREATE TABLE IF NOT EXISTS routes (
   estimated_time_minutes INTEGER,
   -- ordered steps: [{ "text": "...", "lat": 43.4, "lng": -80.5 }]
   steps                  JSONB NOT NULL DEFAULT '[]',
+  -- journey accessibility considerations (about the ENVIRONMENT, never a
+  -- person): [{ "text": "...", "severity": "caution" | "barrier" }]
+  cautions               JSONB NOT NULL DEFAULT '[]',
   created_at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

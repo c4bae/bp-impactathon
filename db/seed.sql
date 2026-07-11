@@ -135,13 +135,16 @@ INSERT INTO quick_picks (user_id, event_category, response) VALUES
   ('11111111-1111-1111-1111-111111111111', 'food', true);
 
 -- ---- Routes (hand-authored) -----------------------------------------
-INSERT INTO routes (event_id, transit_mode, step_free, nearest_accessible_stop, estimated_time_minutes, steps) VALUES
+INSERT INTO routes (event_id, transit_mode, step_free, nearest_accessible_stop, estimated_time_minutes, steps, cautions) VALUES
   ('33333333-0000-0000-0000-000000000004', 'bus', true, 'Hospital Rd @ Green Valley (accessible boarding)', 22,
    '[
      {"text": "Board Route 8 at your stop toward Fairview Mall.", "lat": 43.4516, "lng": -80.4925},
      {"text": "Ride 6 stops. The bus has a ramp and priority seating.", "lat": 43.4460, "lng": -80.4860},
      {"text": "Get off at Hospital Rd @ Green Valley. Step-free curb here.", "lat": 43.4405, "lng": -80.4810},
      {"text": "Walk 120m along the paved path to the gym entrance (no stairs).", "lat": 43.4400, "lng": -80.4800}
+   ]'::jsonb,
+   '[
+     {"text": "Construction on Hospital Rd — sidewalk narrows near the stop", "severity": "caution"}
    ]'::jsonb),
 
   ('33333333-0000-0000-0000-000000000006', 'walk', true, 'Trillium Dr @ Huron (step-free)', 12,
@@ -149,10 +152,15 @@ INSERT INTO routes (event_id, transit_mode, step_free, nearest_accessible_stop, 
      {"text": "Head south on Trillium Dr on the paved sidewalk.", "lat": 43.4080, "lng": -80.4320},
      {"text": "The trailhead has a step-free ramp and a rest bench.", "lat": 43.4060, "lng": -80.4305},
      {"text": "Follow the paved loop. Benches every 200m.", "lat": 43.4050, "lng": -80.4300}
+   ]'::jsonb,
+   '[
+     {"text": "Short gravel stretch (~50 m) before the paved loop", "severity": "caution"},
+     {"text": "No accessible washroom at the trailhead", "severity": "barrier"}
    ]'::jsonb),
 
   ('33333333-0000-0000-0000-000000000001', 'walk', true, 'Albert St @ Bridgeport (step-free)', 8,
    '[
      {"text": "Walk north on Albert St. Curb cuts at every corner.", "lat": 43.4630, "lng": -80.5210},
      {"text": "Library main entrance is level with automatic doors.", "lat": 43.4643, "lng": -80.5204}
-   ]'::jsonb);
+   ]'::jsonb,
+   '[]'::jsonb);

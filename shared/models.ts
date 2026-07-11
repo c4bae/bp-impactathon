@@ -106,6 +106,13 @@ export interface RouteStep {
   lng?: number;
 }
 
+/** Journey accessibility consideration — about the ENVIRONMENT, never a person. */
+export type CautionSeverity = 'caution' | 'barrier'; // caution = yellow, barrier = red
+export interface RouteCaution {
+  text: string;
+  severity: CautionSeverity;
+}
+
 export interface Route {
   id: string;
   event_id: string;
@@ -114,6 +121,7 @@ export interface Route {
   nearest_accessible_stop: string | null;
   estimated_time_minutes: number | null;
   steps: RouteStep[];
+  cautions: RouteCaution[];
   created_at: string;
 }
 

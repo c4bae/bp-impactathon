@@ -65,6 +65,9 @@ export function RouteGuidancePage() {
 
   const script =
     `${route.step_free ? 'This route is step free.' : 'Heads up: this route has stairs.'} ` +
+    route.cautions
+      .map((c) => `${c.severity === 'barrier' ? 'Barrier' : 'Caution'}: ${c.text}. `)
+      .join('') +
     route.steps.map((s, i) => `Step ${i + 1}. ${s.text}`).join(' ');
 
   return (
@@ -82,6 +85,27 @@ export function RouteGuidancePage() {
           <span aria-hidden>{route.step_free ? '✓' : '⚠'}</span>
           {route.step_free ? 'Step-free route' : 'This route has stairs'}
         </p>
+
+        {route.cautions.length > 0 && (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {route.cautions.map((c, i) => (
+              <li
+                key={i}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
+                  c.severity === 'barrier'
+                    ? 'bg-red-100 text-red-900'
+                    : 'bg-yellow-100 text-yellow-900'
+                }`}
+              >
+                <span aria-hidden>{c.severity === 'barrier' ? '⛔' : '⚠'}</span>
+                <span className="sr-only">
+                  {c.severity === 'barrier' ? 'Barrier: ' : 'Caution: '}
+                </span>
+                {c.text}
+              </li>
+            ))}
+          </ul>
+        )}
 
         <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
           <div className="flex gap-1">
