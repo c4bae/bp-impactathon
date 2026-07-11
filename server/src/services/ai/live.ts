@@ -25,7 +25,7 @@ const CATEGORIES = Object.keys(CATEGORY_LABELS) as EventCategory[];
 const TAGS = Object.keys(ACCOMMODATION_LABELS) as AccommodationTag[];
 
 /** Thin OpenRouter chat helper (OpenAI-compatible). Returns assistant text. */
-async function chat(system: string, user: string, jsonMode = false): Promise<string> {
+async function chat(system: string, user: string, jsonMode = false, temperature = 0.2): Promise<string> {
   const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
     method: 'POST',
     headers: {
@@ -39,7 +39,7 @@ async function chat(system: string, user: string, jsonMode = false): Promise<str
         { role: 'user', content: user },
       ],
       ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
-      temperature: 0.2,
+      temperature,
     }),
   });
   if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
@@ -50,6 +50,20 @@ async function chat(system: string, user: string, jsonMode = false): Promise<str
 /** Models love wrapping JSON in ```json fences even in JSON mode. */
 function stripFences(s: string): string {
   return s.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+}
+
+// Scribe transcribes speech verbatim: filler words, false starts, and
+// parenthesized audio events ("(upbeat music)"). Dictated notes feed straight
+// into extraction + the live UI, so scrub the noise. Parentheses are safe to
+// drop wholesale here — spoken audio has no meaningful parentheticals.
+function cleanTranscript(text: string): string {
+  return text
+    .replace(/[\[(][^\])]*[\])]/g, ' ')                       // (laughs), [music]
+    .replace(/\b(?:um+|uh+|uhm+|erm+|hmm+|mhm+|ah|er)\b[,.]?/gi, ' ') // fillers
+    .replace(/\s+([,.!?;:])/g, '$1')                          // re-attach punctuation
+    .replace(/([,.!?;:])[,.;:]+/g, '$1')                      // collapse ", ," leftovers
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 /** Clamp raw model output to a valid ExtractedEvent. Throws if hopeless. */
@@ -89,28 +103,39 @@ export const liveAi: AiService = {
         description,
       );
       return out.trim() || (await mockAi.simplify(description));
-    } catch {
+    } catch (err: any) {
+      console.warn('[ai] simplify falling back to mock:', err?.message || err);
       return mockAi.simplify(description); // never block event creation on the LLM
     }
   },
 
   async extractEvent(transcript): Promise<ExtractedEvent> {
     const schema =
-      '{ "title": string, "description": string, "date_start": string|null (ISO 8601), ' +
+      '{ "title": string (concise event name, max ~8 words — not the whole note), ' +
+      '"description": string (the full details in clean prose), "date_start": string|null (ISO 8601), ' +
       `"category": string[] (from: ${CATEGORIES.join(',')}), ` +
       `"accommodation_tags": string[] (from: ${TAGS.join(',')}), ` +
       '"location_address": string|null, "cost": "free"|"paid", "cost_amount": number|null }';
     try {
+      const now = new Date();
       const raw = await chat(
-        `Extract structured event fields from a staff member's spoken note. ` +
-          `Return ONLY JSON matching: ${schema}. Use null when unsure. ` +
-          `Only set date_start when the note states an unambiguous absolute date; ` +
-          `relative dates ("this Friday") stay null — NEVER invent or guess a date.`,
+        `Extract structured event fields from a staff member's spoken note. The note may be ` +
+          `an unfinished, in-progress dictation — extract only what has been stated so far. ` +
+          `Return ONLY JSON matching: ${schema}. Use null for anything not stated. ` +
+          `Current date/time: ${now.toString()}. When the note states a date or time — absolute ` +
+          `("July 14 at 6pm") or relative ("tomorrow", "next Tuesday") — resolve it against the ` +
+          `current date and return ISO 8601 with the local UTC offset. Interpret "this/next ` +
+          `<weekday>" as the SOONEST future occurrence of that weekday — for example, if today ` +
+          `is Saturday June 6, then "next Tuesday" is June 9 (the soonest Tuesday), NOT June 16. ` +
+          `If no date/time is stated or it is genuinely ambiguous, date_start is null — NEVER ` +
+          `fabricate one.`,
         transcript,
         true,
+        0, // deterministic: live dictation re-extracts repeatedly; values must not wobble
       );
       return sanitizeExtracted(JSON.parse(stripFences(raw)), transcript);
-    } catch {
+    } catch (err: any) {
+      console.warn('[ai] extract falling back to mock:', err?.message || err);
       return mockAi.extractEvent(transcript); // safe fallback on network/parse failure
     }
   },
@@ -133,7 +158,8 @@ export const liveAi: AiService = {
       return Array.isArray(ids)
         ? ids.filter((x): x is string => typeof x === 'string' && known.has(x))
         : [];
-    } catch {
+    } catch (err: any) {
+      console.warn('[ai] search falling back to mock:', err?.message || err);
       return mockAi.search(query, candidates);
     }
   },
@@ -160,6 +186,7 @@ export const liveAi: AiService = {
     // surfaces the error and offers the sample-transcript path instead.
     const form = new FormData();
     form.append('model_id', ELEVEN_STT_MODEL);
+    form.append('tag_audio_events', 'false'); // no "(upbeat music)" annotations
     form.append('file', new Blob([new Uint8Array(audio)], { type: mimeType }), 'audio.webm');
     const res = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
@@ -168,6 +195,6 @@ export const liveAi: AiService = {
     });
     if (!res.ok) throw new Error(`ElevenLabs STT ${res.status}: ${await res.text()}`);
     const data = (await res.json()) as any;
-    return data.text ?? '';
+    return cleanTranscript(data.text ?? '');
   },
 };

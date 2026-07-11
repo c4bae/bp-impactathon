@@ -11,7 +11,23 @@ import {
 
 export type OpenEvent = (e: RankedEvent) => void;
 
+/** id of the synthetic "ghost" event shown while dictation is in progress */
+export const DICTATION_PREVIEW_ID = '__dictation_preview__';
+
 function EventChip({ event, onOpen }: { event: RankedEvent; onOpen: OpenEvent }) {
+  if (event.id === DICTATION_PREVIEW_ID) {
+    return (
+      <span
+        aria-live="polite"
+        title={event.title}
+        className="block w-full rounded border-2 border-dashed border-brand bg-brand-light text-brand-dark px-1.5 py-1 text-xs leading-tight font-medium animate-pulse"
+      >
+        <span aria-hidden>🎙 </span>
+        <span className="font-semibold">{fmtTime(event.date_start)}</span>{' '}
+        <span className="line-clamp-2">{event.title}</span>
+      </span>
+    );
+  }
   const c = eventColor(event);
   return (
     <button
