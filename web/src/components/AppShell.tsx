@@ -6,6 +6,7 @@ import { DemoSwitcher } from './DemoSwitcher';
 const navItems = [
   { to: '/', label: 'Home', end: true },
   { to: '/feed', label: 'Discover' },
+  { to: '/calendar', label: 'Calendar' },
   { to: '/quick-picks', label: 'Quick Picks' },
   { to: '/my-signups', label: 'My Signups' },
   { to: '/org', label: 'Org Dashboard' },

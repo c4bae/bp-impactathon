@@ -13,6 +13,7 @@ import { RouteGuidancePage } from './features/route/RouteGuidancePage';
 import { SignupPage } from './features/accountability/SignupPage';
 import { MySignupsPage } from './features/accountability/MySignupsPage';
 // Contributor 4 — Org & Admin
+import { CalendarPage } from './features/calendar/CalendarPage';
 import { OrgScorecardPage } from './features/org/OrgScorecardPage';
 import { CreateEventChoicePage } from './features/admin/CreateEventChoicePage';
 import { VoiceCreatePage } from './features/admin/VoiceCreatePage';
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/events/:id/route" element={<RouteGuidancePage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/quick-picks" element={<QuickPicksPage />} />
           <Route path="/signup/:eventId" element={<SignupPage />} />
           <Route path="/my-signups" element={<MySignupsPage />} />

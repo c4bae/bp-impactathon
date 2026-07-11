@@ -31,6 +31,13 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(500).json({ error: err?.message || 'internal_error' });
 });
 
+// Express 4 doesn't forward errors thrown in async handlers to the handler
+// above — they surface as unhandled rejections, which crash Node by default.
+// Log and keep serving instead; the affected request times out/errors alone.
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandled rejection]', err);
+});
+
 const port = Number(process.env.PORT || 4000);
 initDb()
   .then(() => {

@@ -38,7 +38,7 @@ pool.on('connect', () => {
 
 // Safety net for the one request that races the re-registration above: these
 // enum-array columns must never reach a client as a raw "{a,b}" string.
-const ENUM_ARRAY_COLS = ['category', 'accommodation_tags', 'needs_flagged'];
+const ENUM_ARRAY_COLS = ['category', 'accommodation_tags', 'needs_flagged', 'accommodation_needs'];
 
 export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
   const res = await pool.query(text, params);

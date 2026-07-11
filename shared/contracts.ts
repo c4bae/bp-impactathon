@@ -52,6 +52,9 @@ export interface CreateEventBody {
   plain_language_description?: string | null;
 }
 
+/** Partial event update (calendar edit flow). org/created_via are immutable. */
+export type UpdateEventBody = Partial<Omit<CreateEventBody, 'org_id' | 'created_via'>>;
+
 export interface ResolveGapBody {
   /** the tag the org is claiming to have fixed; flips the badge to confirmed */
   resolved_tag?: AccommodationTag;
@@ -105,6 +108,8 @@ export interface AiService {
 // GET    /api/events                 ?user_id=&q=&categories=&accommodation_tags=&max_cost=  -> RankedEvent[]
 // GET    /api/events/:id                                                                     -> Event & { org_name, route? }
 // POST   /api/events                 CreateEventBody                                          -> Event
+// PATCH  /api/events/:id             UpdateEventBody   (re-simplifies if description changes) -> Event
+// DELETE /api/events/:id                                                                      -> 204
 // GET    /api/signups                ?user_id=                                                -> Signup[]
 // POST   /api/signups                CreateSignupBody                                         -> Signup
 // PATCH  /api/signups/:id            UpdateSignupBody   (recomputes badge synchronously)      -> Signup

@@ -8,7 +8,7 @@ import type {
   EventCategory, AccommodationTag, AttendedState, BlockerReason,
 } from '../../../shared/models';
 import type {
-  CreateEventBody, ExtractedEvent, ResolveGapBody,
+  CreateEventBody, UpdateEventBody, ExtractedEvent, ResolveGapBody,
 } from '../../../shared/contracts';
 
 const BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
@@ -56,6 +56,12 @@ export const api = {
   },
   createEvent(body: CreateEventBody): Promise<Event> {
     return req(`/events`, { method: 'POST', body: JSON.stringify(body) });
+  },
+  updateEvent(id: string, body: UpdateEventBody): Promise<Event> {
+    return req(`/events/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+  },
+  deleteEvent(id: string): Promise<void> {
+    return req(`/events/${id}`, { method: 'DELETE' });
   },
 
   // ---- signups / accountability (Contributor 3) ----

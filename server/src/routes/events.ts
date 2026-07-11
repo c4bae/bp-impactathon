@@ -5,7 +5,7 @@ import { ai } from '../services/ai';
 import type {
   Event, RankedEvent, User, EventCategory, AccommodationTag,
 } from '../../../shared/models';
-import type { CreateEventBody } from '../../../shared/contracts';
+import type { CreateEventBody, UpdateEventBody } from '../../../shared/contracts';
 
 export const events = Router();
 
@@ -144,6 +144,48 @@ events.post('/', async (req, res) => {
      b.location_lat ?? null, b.location_lng ?? null, b.accommodation_tags || [], b.created_via || 'form'],
   );
   res.status(201).json(created);
+});
+
+// PATCH /api/events/:id — partial update (calendar edit flow). Whitelisted
+// columns only; if the description changes without an explicit plain-language
+// override, re-simplify so the two never drift apart.
+const UPDATABLE = [
+  'title', 'description', 'plain_language_description', 'category',
+  'date_start', 'date_end', 'cost', 'cost_amount', 'age_group',
+  'location_address', 'location_lat', 'location_lng', 'accommodation_tags',
+] as const satisfies readonly (keyof UpdateEventBody)[];
+
+events.patch('/:id', async (req, res) => {
+  const b = req.body as UpdateEventBody;
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  for (const col of UPDATABLE) {
+    if (b[col] !== undefined) {
+      vals.push(b[col]);
+      sets.push(`${col} = $${vals.length}`);
+    }
+  }
+  if (!sets.length) return res.status(400).json({ error: 'no_fields' });
+  if (b.description !== undefined && b.plain_language_description === undefined) {
+    vals.push(await ai.simplify(b.description));
+    sets.push(`plain_language_description = $${vals.length}`);
+  }
+  vals.push(req.params.id);
+  const updated = await one<Event>(
+    `UPDATE events SET ${sets.join(', ')} WHERE id = $${vals.length} RETURNING *`,
+    vals,
+  );
+  if (!updated) return res.status(404).json({ error: 'not_found' });
+  res.json(updated);
+});
+
+// DELETE /api/events/:id — signups/routes cascade (see db/schema.sql).
+events.delete('/:id', async (req, res) => {
+  const gone = await one<{ id: string }>(
+    `DELETE FROM events WHERE id = $1 RETURNING id`, [req.params.id],
+  );
+  if (!gone) return res.status(404).json({ error: 'not_found' });
+  res.status(204).end();
 });
 
 function csv(v: unknown): string[] {
