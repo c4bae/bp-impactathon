@@ -1,15 +1,198 @@
-import { useParams } from 'react-router-dom';
-import { Placeholder } from '../../components/Placeholder';
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { api, type EventDetail } from '../../api/client';
+import { useSession } from '../../lib/session';
+import { Button, Card, Field, TagChip } from '../../components/ui';
+import {
+  ACCOMMODATION_LABELS,
+  type AccommodationTag, type Signup,
+} from '../../../../shared/models';
 
 // Contributor 3 — Screen: Signup form.
 // Basic info + OPTIONAL needs checkboxes (functional needs, never a
 // diagnosis), a clear Skip, plain consent copy. api.signup().
 // See docs/contributor-3-accountability.md.
+
+const ALL_TAGS = Object.keys(ACCOMMODATION_LABELS) as AccommodationTag[];
+
 export function SignupPage() {
-  const { eventId } = useParams();
+  const { eventId } = useParams<{ eventId: string }>();
+  const { userId } = useSession();
+
+  const [event, setEvent] = useState<EventDetail | null>(null);
+  const [name, setName] = useState('');
+  const [contact, setContact] = useState('');
+  const [checked, setChecked] = useState<AccommodationTag[]>([]);
+  const [submitting, setSubmitting] = useState<'share' | 'skip' | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [done, setDone] = useState<Signup | null>(null);
+
+  useEffect(() => {
+    if (!eventId) return;
+    let cancelled = false;
+    api.event(eventId).then(
+      (ev) => { if (!cancelled) setEvent(ev); },
+      () => {},
+    );
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  // Prefill name/contact and saved functional needs from the demo user.
+  useEffect(() => {
+    let cancelled = false;
+    api.users().then((users) => {
+      if (cancelled) return;
+      const me = users.find((u) => u.id === userId);
+      if (!me) return;
+      setName(me.name);
+      setContact(me.contact_method ?? '');
+      setChecked(me.accommodation_needs);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  function toggle(tag: AccommodationTag) {
+    setChecked((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  }
+
+  async function submit(kind: 'share' | 'skip') {
+    if (!eventId) return;
+    setSubmitting(kind);
+    setSubmitError(null);
+    try {
+      const needs = kind === 'share' && checked.length ? checked : undefined;
+      // The API upserts, so re-submitting when already signed up is safe.
+      setDone(await api.signup(userId, eventId, needs));
+    } catch {
+      setSubmitError('Something went wrong saving your signup — please try again.');
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <Card>
+          <h1 className="text-2xl font-bold mb-2" role="status">
+            You&rsquo;re signed up{event ? ` for ${event.title}` : ''}!
+          </h1>
+          {done.needs_flagged.length > 0 ? (
+            <>
+              <p className="mb-2">You told us what helps you take part:</p>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {done.needs_flagged.map((tag) => <TagChip key={tag} tag={tag} />)}
+              </div>
+              <p className="text-muted text-sm mb-4">
+                This only goes to improving access — it is never a medical label. Sign up
+                again any time to change or clear it.
+              </p>
+            </>
+          ) : (
+            <p className="text-muted mb-4">
+              You didn&rsquo;t share any access needs — that&rsquo;s completely fine. You can
+              always sign up again to add them.
+            </p>
+          )}
+          <p className="mb-4">After the event we&rsquo;ll ask how it went, so organizers hear what worked and what got in the way.</p>
+          <div className="flex flex-wrap gap-3">
+            <Link to={`/events/${eventId}`} className="inline-flex items-center min-h-[44px] px-4 rounded-lg bg-brand text-white font-medium hover:bg-brand-dark">
+              Back to event
+            </Link>
+            <Link to="/my-signups" className="inline-flex items-center min-h-[44px] px-4 rounded-lg bg-brand-light text-brand-dark font-medium hover:bg-[#d6e9e2]">
+              See my signups
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <Placeholder owner="Contributor 3 · Accountability" doc="contributor-3-accountability.md" title="Signup form">
-      <code>api.signup(userId, '{eventId}', needs_flagged?)</code>. Optional needs, clear skip, plain consent.
-    </Placeholder>
+    <div className="mx-auto max-w-xl">
+      <h1 className="text-2xl font-bold mb-1">Sign up{event ? `: ${event.title}` : ''}</h1>
+      {event && (
+        <p className="text-muted mb-4">
+          {new Date(event.date_start).toLocaleDateString(undefined, {
+            weekday: 'long', month: 'long', day: 'numeric',
+          })}
+          {event.location_address ? ` · ${event.location_address}` : ''}
+        </p>
+      )}
+
+      <form
+        onSubmit={(e) => { e.preventDefault(); void submit('share'); }}
+        noValidate
+      >
+        <Card className="mb-4">
+          <Field label="Name (optional)" htmlFor="signup-name">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              className="w-full min-h-[44px] rounded-lg border border-black/15 px-3"
+            />
+          </Field>
+          <Field label="Contact (optional)" htmlFor="signup-contact" hint="Only used if the organizer needs to reach you about this event.">
+            <input
+              type="text"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              autoComplete="email"
+              className="w-full min-h-[44px] rounded-lg border border-black/15 px-3"
+            />
+          </Field>
+        </Card>
+
+        <Card className="mb-4">
+          <fieldset>
+            <legend className="font-medium mb-1">What helps you take part? (optional)</legend>
+            <p className="text-muted text-sm mb-3">
+              You can tell us what helps you take part. This is optional, only used to
+              improve access, and never a medical label.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ALL_TAGS.map((tag) => {
+                const isOn = checked.includes(tag);
+                return (
+                  <label
+                    key={tag}
+                    className={`flex items-center gap-3 min-h-[44px] px-3 rounded-lg border cursor-pointer ${
+                      isOn ? 'border-brand bg-brand-light text-brand-dark' : 'border-black/15'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isOn}
+                      onChange={() => toggle(tag)}
+                      className="h-5 w-5"
+                    />
+                    {ACCOMMODATION_LABELS[tag]}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+        </Card>
+
+        {submitError && <p role="alert" className="text-badge-gap mb-3">{submitError}</p>}
+
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" loading={submitting === 'share'} disabled={submitting !== null}>
+            Sign me up
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            loading={submitting === 'skip'}
+            disabled={submitting !== null}
+            onClick={() => void submit('skip')}
+          >
+            Skip — just sign me up
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
