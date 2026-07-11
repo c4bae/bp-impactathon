@@ -17,7 +17,7 @@ feedback into an **accessibility accountability signal** for organizers.
 |---|---|
 | Frontend | Vite + React + TypeScript + Tailwind |
 | Backend | Node + Express |
-| DB | Local Postgres (Docker Compose) |
+| DB | Native local Postgres (Homebrew `postgresql@16`, no Docker) |
 | LLM | **OpenRouter** (cheap model, OpenAI-compatible) — simplify, extract, NL search |
 | Voice | **ElevenLabs** — TTS read-aloud + Scribe STT (one vendor, one key, both directions) |
 | Maps | Leaflet + OpenStreetMap tiles |
@@ -28,20 +28,28 @@ API keys**. `AI_MODE=live` swaps in real OpenRouter + ElevenLabs.
 
 ---
 
+## Prerequisites (one-time, per machine)
+
+```bash
+brew install postgresql@16     # native Postgres, no Docker
+```
+No manual role/DB creation needed — `npm run db:setup` handles it, connecting as
+your macOS user (Homebrew's default superuser) over trust auth.
+
 ## Quick start
 
 ```bash
-cp .env.example .env          # defaults work as-is for mock mode
-npm install                   # installs server + web workspaces
-npm run db:up                 # start Postgres (auto-runs schema.sql + seed.sql)
-npm run dev                   # starts API (:4000) + web (:5173) together
+cp .env.example .env     # defaults work as-is for mock mode
+npm run setup            # installs workspaces + starts Postgres + creates & seeds DB
+npm run dev              # starts API (:4000) + web (:5173) together
 ```
 
-Open http://localhost:5173. First boot seeds orgs, events, users, signups,
+Open http://localhost:5173. Setup seeds orgs, events, users, signups,
 pre-populated barrier reports, and hand-authored routes.
 
-**Reset the DB** (re-run schema + seed): `npm run db:reset`.
+**Reset the DB** (drop + recreate + reseed): `npm run db:reset`.
 **Poke the DB**: `npm run db:psql`.
+**Start Postgres only**: `npm run db:start`.
 **Health check**: `curl localhost:4000/api/health`.
 
 To go live with real AI: set `AI_MODE=live` + `OPENROUTER_API_KEY` +
@@ -52,7 +60,8 @@ To go live with real AI: set `AI_MODE=live` + `OPENROUTER_API_KEY` +
 ## Repo layout
 
 ```
-db/            schema.sql + seed.sql (auto-run by docker-compose on first boot)
+db/            schema.sql + seed.sql (loaded by `npm run db:setup`)
+scripts/       db.sh — native Postgres helper (start / setup / reset / psql)
 shared/        models.ts (data model) + contracts.ts (API + AI interfaces)  ← the contract everyone shares
 server/        Express API — all endpoints, badge logic, AI services (mock + live)
 web/           React app

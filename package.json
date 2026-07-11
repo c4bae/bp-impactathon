@@ -8,13 +8,14 @@
     "web"
   ],
   "scripts": {
-    "db:up": "docker compose up -d db",
-    "db:down": "docker compose down",
-    "db:reset": "docker compose down -v && rm -rf pgdata && docker compose up -d db",
-    "db:psql": "docker compose exec db psql -U kwhab -d kwhab",
+    "db:start": "bash scripts/db.sh start",
+    "db:setup": "bash scripts/db.sh setup",
+    "db:reset": "bash scripts/db.sh reset",
+    "db:psql": "bash scripts/db.sh psql",
+    "setup": "npm install && npm run db:start && npm run db:setup",
     "dev:server": "npm run dev -w server",
     "dev:web": "npm run dev -w web",
-    "dev": "npm run db:up && concurrently -n server,web -c blue,magenta \"npm run dev:server\" \"npm run dev:web\"",
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev:server\" \"npm run dev:web\"",
     "install:all": "npm install"
   },
   "devDependencies": {

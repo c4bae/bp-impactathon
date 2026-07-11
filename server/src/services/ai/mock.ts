@@ -46,8 +46,9 @@ export const mockAi: AiService = {
   async extractEvent(transcript): Promise<ExtractedEvent> {
     const cats = scanEnum(transcript, CATEGORY_KEYWORDS);
     const tags = scanEnum(transcript, TAG_KEYWORDS);
-    const isFree = /\bfree\b/i.test(transcript);
     const costMatch = transcript.match(/\$\s?(\d+(?:\.\d{1,2})?)/);
+    // "free" wins over a stray price; otherwise a $amount means paid.
+    const isFree = /\bfree\b/i.test(transcript) || !costMatch;
     // First sentence -> title (trimmed), whole thing -> description.
     const title =
       transcript.split(/[.!?\n]/)[0]?.trim().slice(0, 80) || 'Untitled event';
@@ -58,8 +59,8 @@ export const mockAi: AiService = {
       category: cats.length ? cats : ['social'],
       accommodation_tags: tags,
       location_address: null,
-      cost: isFree || !costMatch ? 'free' : 'paid',
-      cost_amount: costMatch ? parseFloat(costMatch[1]) : null,
+      cost: isFree ? 'free' : 'paid',
+      cost_amount: isFree ? null : parseFloat(costMatch![1]),
     };
   },
 

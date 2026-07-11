@@ -111,7 +111,8 @@ the **card feed** and **signup form** first — C1 and C3, tighten those.
 ## 8. Running & verifying
 
 ```bash
-npm run db:up && npm run dev     # DB + API + web
+npm run setup     # first time: install + start native Postgres + create/seed DB
+npm run dev       # API :4000 + web :5173
 ```
 - API health: `curl localhost:4000/api/health` → `{ ok: true, ai_mode: "mock" }`
 - Reset seed data: `npm run db:reset`

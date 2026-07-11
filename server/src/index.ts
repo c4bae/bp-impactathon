@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { initDb } from './db';
 import { AI_MODE } from './services/ai';
 import { events } from './routes/events';
 import { signups } from './routes/signups';
@@ -31,6 +32,13 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 });
 
 const port = Number(process.env.PORT || 4000);
-app.listen(port, () => {
-  console.log(`✅ KW Hab API on http://localhost:${port}  (AI_MODE=${AI_MODE})`);
-});
+initDb()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`✅ KW Hab API on http://localhost:${port}  (AI_MODE=${AI_MODE})`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Failed to init DB (is Postgres running? `npm run db:start`)', err);
+    process.exit(1);
+  });

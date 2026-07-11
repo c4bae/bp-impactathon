@@ -27,7 +27,7 @@ depends on.
 ## 1. Setup
 
 ```bash
-cp .env.example .env && npm install && npm run db:up && npm run dev
+cp .env.example .env && npm run setup && npm run dev
 ```
 `leaflet` is already a dependency. Open http://localhost:5173.
 

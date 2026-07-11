@@ -27,8 +27,7 @@ imported from the shared foundation (below).
 
 ```bash
 cp .env.example .env
-npm install
-npm run db:up          # Postgres with seeded events
+npm run setup          # installs deps + starts Postgres + creates/seeds DB
 npm run dev            # API :4000 + web :5173
 ```
 Open http://localhost:5173. The nav's "Viewing as" dropdown switches demo

@@ -27,7 +27,7 @@ the badge logic in `server/src/badges.ts` — you may tune the thresholds there
 ## 1. Setup
 
 ```bash
-cp .env.example .env && npm install && npm run db:up && npm run dev
+cp .env.example .env && npm run setup && npm run dev
 ```
 Seeded so you have real material: the demo user already has 2 signups, and the
 "Community Kitchen" event has **7 seeded blocker reports** (5 of them
