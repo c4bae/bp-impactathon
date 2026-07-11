@@ -39,3 +39,104 @@
   @apply bg-brand text-white px-4 py-2;
 }
 .skip-link:focus { left: 0; }
+
+/* Accessible event markers used by the 3D discovery map. */
+.event-map-pin {
+  width: 34px;
+  height: 34px;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 0;
+  background: #1f6f5c;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 35%);
+  cursor: pointer;
+  transform: rotate(-45deg);
+}
+.event-map-pin::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  inset: 9px;
+  border-radius: 50%;
+  background: white;
+}
+.event-map-pin:focus-visible { outline-color: #f5b942; }
+
+/* Visitor-controlled accessibility tools. Preferences are applied on <html>. */
+html { font-size: calc(100% * var(--a11y-text-scale, 1)); }
+
+.a11y-widget { position: fixed; right: 1rem; bottom: 1rem; z-index: 80; }
+.a11y-trigger {
+  display: grid; place-items: center; width: 3.5rem; height: 3.5rem; margin-left: auto;
+  border: 3px solid white; border-radius: 9999px; color: white; background: #144a3d;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 28%);
+}
+.a11y-trigger:hover { background: #1f6f5c; }
+.a11y-panel {
+  width: min(23rem, calc(100vw - 2rem)); margin-bottom: .75rem; overflow: hidden;
+  border: 1px solid rgb(0 0 0 / 12%); border-radius: 1rem; background: #fff;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 24%);
+}
+.a11y-icon-button {
+  display: grid; place-items: center; width: 2.5rem; height: 2.5rem; flex: none;
+  border-radius: .65rem; color: #144a3d; background: white;
+}
+.a11y-icon-button:hover:not(:disabled) { background: #e6f2ee; }
+.a11y-icon-button:disabled { opacity: .35; cursor: not-allowed; }
+.a11y-option {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 1rem;
+  border: 1px solid rgb(0 0 0 / 10%); border-radius: .75rem; padding: .7rem .8rem; background: white;
+}
+.a11y-option:hover { border-color: #1f6f5c; background: #f5faf8; }
+.a11y-switch { width: 2.5rem; height: 1.45rem; flex: none; padding: .18rem; border-radius: 9999px; background: #777; }
+.a11y-switch span { display: block; width: 1.09rem; height: 1.09rem; border-radius: 50%; background: white; transition: transform 150ms ease; }
+.a11y-option[aria-checked='true'] .a11y-switch { background: #1f6f5c; }
+.a11y-option[aria-checked='true'] .a11y-switch span { transform: translateX(1.05rem); }
+
+/* Classic high contrast: black surfaces, white reading text, and yellow only
+   for interactive elements. Keeping those roles separate prevents glare and
+   avoids low-contrast yellow-on-white combinations. */
+html[data-a11y-contrast] body { color: #fff !important; background: #000 !important; }
+html[data-a11y-contrast] body :where(
+  header, footer, section, article, aside, [role='dialog'], .a11y-panel,
+  [class*='bg-white'], [class*='bg-paper'], [class*='bg-brand-light'],
+  [class*='bg-gray-'], [class*='bg-orange-']
+) { color: #fff !important; background-color: #000 !important; border-color: #fff !important; }
+html[data-a11y-contrast] body :where(
+  h1, h2, h3, h4, h5, h6, p, label, legend, output, small,
+  [class*='text-ink'], [class*='text-muted'], [class*='text-badge']
+) { color: #fff !important; }
+html[data-a11y-contrast] body a:not(.a11y-trigger) {
+  color: #ffeb3b !important; text-decoration: underline;
+  text-decoration-thickness: .12em; text-underline-offset: .18em;
+}
+html[data-a11y-contrast] body button:not(.a11y-trigger) {
+  color: #ffeb3b !important; background: #000 !important;
+  border: 2px solid #ffeb3b !important;
+}
+html[data-a11y-contrast] body button[aria-pressed='true'],
+html[data-a11y-contrast] body button[aria-checked='true'] {
+  color: #000 !important; background: #ffeb3b !important;
+}
+html[data-a11y-contrast] body :where(input, select, textarea) {
+  color: #000 !important; background: #fff !important; border: 2px solid #fff !important;
+}
+html[data-a11y-contrast] body :where(input, select, textarea)::placeholder { color: #333 !important; opacity: 1; }
+html[data-a11y-contrast] body :where(header, footer, article, section, [role='dialog']) { border-color: #fff !important; }
+html[data-a11y-contrast] .a11y-option { color: #fff !important; background: #000 !important; border-color: #fff !important; }
+html[data-a11y-contrast] .a11y-option[aria-checked='true'] { color: #000 !important; background: #ffeb3b !important; box-shadow: 0 0 0 2px #ffeb3b; }
+html[data-a11y-contrast] .a11y-option[aria-checked='true'] :where(span) { color: #000 !important; }
+html[data-a11y-contrast] .a11y-switch { background: #777 !important; border: 2px solid #fff; }
+html[data-a11y-contrast] .a11y-option[aria-checked='true'] .a11y-switch { background: #000 !important; border-color: #000; }
+html[data-a11y-grayscale] body { filter: grayscale(1); }
+html[data-a11y-readable-font] body, html[data-a11y-readable-font] :where(h1, h2, h3, h4, h5, h6, button, label, legend) { font-family: Arial, Helvetica, sans-serif !important; }
+html[data-a11y-underline-links] a { text-decoration: underline !important; text-decoration-thickness: .12em !important; text-underline-offset: .18em; }
+html[data-a11y-roomy-text] body { line-height: 1.85 !important; letter-spacing: .045em !important; word-spacing: .12em !important; }
+html[data-a11y-reduce-motion] *, html[data-a11y-reduce-motion] *::before, html[data-a11y-reduce-motion] *::after { animation: none !important; scroll-behavior: auto !important; transition: none !important; }
+html[data-a11y-hide-images] img { visibility: hidden !important; }
+html[data-a11y-strong-focus] :focus { outline: 4px solid #f5b942 !important; outline-offset: 4px !important; }
+
+@media (max-width: 480px) {
+  .a11y-widget { right: .75rem; bottom: .75rem; }
+  .a11y-panel { width: calc(100vw - 1.5rem); }
+}
