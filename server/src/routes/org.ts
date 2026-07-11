@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, one } from '../db';
-import { rawBarrierCounts, suppress, recomputeBadge } from '../badges';
+import { rawBarrierCounts, suppress, recomputeBadge, blockerRelatedNeeds } from '../badges';
 import type { OrgScorecard, Event } from '../../../shared/models';
 import type { ResolveGapBody } from '../../../shared/contracts';
 
@@ -37,6 +37,7 @@ org.get('/:id/scorecard', async (req, res) => {
 
   for (const e of events) {
     const blockers = suppress(await rawBarrierCounts(e.id));
+    const related_needs = blockers.length ? await blockerRelatedNeeds(e.id) : [];
     for (const b of blockers) {
       orgBlockerTotals.set(b.blocker_reason, (orgBlockerTotals.get(b.blocker_reason) || 0) + b.count);
     }
@@ -49,6 +50,7 @@ org.get('/:id/scorecard', async (req, res) => {
       attended: e.attended,
       badge_state: e.accessibility_badge_state,
       blockers,
+      related_needs,
     });
   }
 

@@ -63,15 +63,22 @@ events.get('/', async (req, res) => {
     }
   }
 
-  // Quick-pick affinity for this user.
+  // Quick-pick affinity for this user. Quick Picks records swipes on
+  // specific EVENTS, not categories — derive category affinity from what
+  // the swiped events have in common. A single swipe nudges every category
+  // on that event (e.g. liking an "arts, social" event bumps both).
   const picks = user
-    ? await query<{ event_category: EventCategory; response: boolean }>(
-        `SELECT event_category, response FROM quick_picks WHERE user_id = $1`,
+    ? await query<{ category: EventCategory[]; response: boolean }>(
+        `SELECT e.category, qp.response
+           FROM quick_picks qp JOIN events e ON e.id = qp.event_id
+          WHERE qp.user_id = $1`,
         [user.id],
       )
     : [];
   const affinity = new Map<EventCategory, number>();
-  for (const p of picks) affinity.set(p.event_category, (affinity.get(p.event_category) || 0) + (p.response ? 1 : -1));
+  for (const p of picks) {
+    for (const c of p.category) affinity.set(c, (affinity.get(c) || 0) + (p.response ? 1 : -1));
+  }
 
   const now = Date.now();
   const ranked: RankedEvent[] = ordered.map((e) => {

@@ -108,10 +108,13 @@ CREATE TABLE IF NOT EXISTS signups (
   UNIQUE (user_id, event_id)
 );
 
+-- Swipes on specific EVENTS, not broad categories — category (and any other
+-- preference signal) is derived by looking up what the swiped events have in
+-- common, not stored directly. See server/src/routes/events.ts affinity calc.
 CREATE TABLE IF NOT EXISTS quick_picks (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  event_category event_category NOT NULL,
+  event_id       UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   response       BOOLEAN NOT NULL,        -- true = interested
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
   -- feeds ranking ONLY. never joined to accommodation_needs.

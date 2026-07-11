@@ -8,7 +8,7 @@
 
 import type {
   AccommodationTag, EventCategory, RankedEvent, Signup, Event,
-  QuickPick, Route, BlockerReason, AttendedState, OrgScorecard,
+  QuickPick, Route, BlockerReason, AttendedState, OrgScorecard, BadgeState,
 } from './models';
 
 // ---- REST request/response DTOs -------------------------------------
@@ -60,13 +60,29 @@ export interface ResolveGapBody {
   resolved_tag?: AccommodationTag;
 }
 
+/** Lightweight event shape for the Quick Picks swipe deck — enough to show
+ * a card without the full Event payload. */
+export interface QuickPickCandidate {
+  id: string;
+  title: string;
+  plain_language_description: string | null;
+  description: string;
+  category: EventCategory[];
+  accommodation_tags: AccommodationTag[];
+  date_start: string;
+  cost: 'free' | 'paid';
+  cost_amount: number | null;
+  org_name: string;
+  accessibility_badge_state: BadgeState;
+}
+
 export interface QuickPickTodayResponse {
-  categories: EventCategory[];
+  events: QuickPickCandidate[];
 }
 
 export interface SubmitQuickPickBody {
   user_id: string;
-  event_category: EventCategory;
+  event_id: string;
   response: boolean;
 }
 

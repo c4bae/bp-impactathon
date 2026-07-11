@@ -60,46 +60,51 @@ await artsPill.click();
 await page.waitForFunction(() => location.search.includes('categories=arts'), null, { timeout: 5000 });
 check('clicking the Arts pill encodes the category into the URL in place (no separate Home step)',
   page.url().includes('categories=arts'));
+// Ground truth from the API, not a fixed title list — the real synced
+// calendar's event set changes on every re-sync.
+const artsEvents = await (await fetch(`${API}/api/events?user_id=${USERS.gio}&categories=arts`)).json();
+const artsTitleSet = new Set(artsEvents.map((e) => e.title));
 const filteredTitles = await cardTitleOrder();
-check('Feed applies the category filter (only arts events shown)',
-  filteredTitles.length > 0 && filteredTitles.every((t) => t === 'Open Studio: Paint Night'),
+check('Feed applies the category filter (every shown card actually has the arts category, per the API)',
+  filteredTitles.length > 0 && filteredTitles.every((t) => artsTitleSet.has(t)),
   filteredTitles.join(', '));
 check('active filter pill shows selected state', await artsPill.getAttribute('aria-pressed') === 'true');
 
 // ============== Seam B: Quick Picks (C2) -> Feed ranking (C1) ==========
+// Quick Picks swipes on specific EVENTS now, not categories — category
+// affinity is derived server-side from what got swiped. The real synced
+// calendar's candidate pool is large and effectively random, so this
+// captures whatever /quick-picks/today actually serves (via the network
+// response, not a guess) and verifies the seam generically: liking an
+// event should surface "matches your Quick Picks" on ANY other upcoming
+// event sharing one of its categories.
 console.log('--- Seam B: Quick Picks (C2) vote shifts Feed (C1) ranking ---');
-await asUser(USERS.fin, '/feed');
-await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
-const beforeOrder = await cardTitleOrder();
-const beforeRank = beforeOrder.indexOf('Summer Baking - Cookie Dough Bites');
-check('Summer Baking present in Fin’s feed before any Quick Picks',
-  beforeRank !== -1, beforeOrder.join(', '));
+await page.goto(`${BASE}/`);
+await page.evaluate((uid) => localStorage.setItem('kwhab.user_id', uid), USERS.fin);
+const todayResPromise = page.waitForResponse((r) => r.url().includes('/api/quick-picks/today'));
+await page.goto(`${BASE}/quick-picks`);
+const todayRes = await todayResPromise;
+const { events: candidates } = await todayRes.json();
+check('Quick Picks offers real candidate events from the API', candidates.length > 0, JSON.stringify(candidates.map((c) => c.title)));
 
-await asUser(USERS.fin, '/quick-picks');
 await page.locator('h1', { hasText: 'Quick Picks' }).waitFor({ timeout: 10000 });
-// Answer up to 3 prompts; vote Yes on Food whenever it appears, No otherwise.
-for (let i = 0; i < 3; i++) {
-  const heading = page.locator('h2', { hasText: 'Interested in' });
-  if (!(await heading.isVisible().catch(() => false))) break;
-  const text = await heading.textContent();
-  const isFood = /Food/.test(text || '');
-  await page.getByRole('button', { name: isFood ? /Yes/ : /Not for me/ }).click();
+const liked = candidates[0];
+for (let i = 0; i < candidates.length; i++) {
+  await page.locator('h3', { hasText: candidates[i].title }).waitFor({ timeout: 10000 });
+  await page.getByRole('button', { name: i === 0 ? /Interested/ : /Not for me/ }).click();
 }
 check('Quick Picks reaches a done state after answering', await page.getByText(/for today/).isVisible({ timeout: 5000 }));
 
-await page.getByRole('link', { name: 'See your feed' }).click();
-await page.waitForURL('**/feed');
-await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
-const afterOrder = await cardTitleOrder();
-const afterRank = afterOrder.indexOf('Summer Baking - Cookie Dough Bites');
-check('Summer Baking rank improves (or stays top) after a Food 👍 Quick Pick, OR the food vote wasn’t offered this run',
-  afterRank !== -1 && afterRank <= beforeRank,
-  `before=${beforeRank} after=${afterRank} :: ${afterOrder.join(', ')}`);
-const bakingCard = row('Summer Baking - Cookie Dough Bites').first();
-check('Feed surfaces "matches your Quick Picks" reason after the vote (score_reasons wired end-to-end)',
-  await bakingCard.getByText('matches your Quick Picks').isVisible({ timeout: 5000 }).catch(() => false)
-  || afterRank <= beforeRank, // tolerate the rare unseen-category fallback
-  'quick-pick reason chip');
+// Any other upcoming event sharing a category with the liked one should now
+// carry the "matches your Quick Picks" reason for this user.
+const feedAfter = await (await fetch(`${API}/api/events?user_id=${USERS.fin}`)).json();
+const sameCategoryOther = feedAfter.find((e) =>
+  e.id !== liked.id && e.category.some((c) => liked.category.includes(c)));
+check('a same-category event exists to verify the derived affinity against',
+  !!sameCategoryOther, liked.category.join(','));
+check('Feed surfaces "matches your Quick Picks" on a same-category event after the vote (score_reasons wired end-to-end)',
+  !!sameCategoryOther && sameCategoryOther.score_reasons.includes('matches your Quick Picks'),
+  sameCategoryOther ? `${sameCategoryOther.title}: ${sameCategoryOther.score_reasons.join(',')}` : 'n/a');
 
 // ============== Seam C: Feed -> Detail -> Route (C1 -> C2) =============
 console.log('--- Seam C: Feed (C1) -> Event detail (C1) -> Route guidance (C2) ---');
@@ -109,7 +114,9 @@ await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 1000
 // not full navigation — the CTAs inside it (shared with the full page via
 // EventDetailBody) are plain, un-intercepted Links, so clicking through
 // them still exercises real react-router navigation for the next step.
-await page.getByRole('link', { name: 'Transit Tuesdays' }).click();
+// Anchored by id, not title text — the real synced calendar has duplicate
+// titles (e.g. two "Transit Tuesdays" occurrences on different dates).
+await page.locator(`#ev-${TRANSIT}-title`).getByRole('link').click();
 const dialog = page.getByRole('dialog', { name: 'Event details' });
 await dialog.getByRole('heading', { name: 'Transit Tuesdays' }).waitFor({ timeout: 10000 });
 check('Event detail loaded from Feed card link (Discover slide-over)', true);
@@ -169,7 +176,9 @@ console.log(`  Summer Baking badge before this run: ${before.accessibility_badge
 await page.goto(`${BASE}/my-signups`);
 await page.evaluate((uid) => localStorage.setItem('kwhab.user_id', uid), USERS.demo);
 await page.goto(`${BASE}/my-signups`);
-await page.getByRole('button', { name: /Simulate day passing/ }).click();
+// Summer Baking is seeded genuinely in the past (db/seed.sql) — the
+// follow-up prompt is open on load, no simulate-day-passing trigger exists.
+await row('Summer Baking').locator('legend', { hasText: 'Did you go?' }).waitFor({ timeout: 10000 });
 await row('Summer Baking').getByRole('button', { name: 'No', exact: true }).click();
 await row('Summer Baking').getByRole('button', { name: 'Accommodation gap' }).click();
 await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
@@ -180,7 +189,7 @@ for (const uid of reporters) {
   await page.getByRole('button', { name: /Sign me up — quick & private/ }).click();
   await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
   await page.goto(`${BASE}/my-signups`);
-  await page.getByRole('button', { name: /Simulate day passing/ }).click();
+  await row('Summer Baking').locator('legend', { hasText: 'Did you go?' }).waitFor({ timeout: 10000 });
   await row('Summer Baking').getByRole('button', { name: 'No', exact: true }).click();
   await row('Summer Baking').getByRole('button', { name: 'Accommodation gap' }).click();
   await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });

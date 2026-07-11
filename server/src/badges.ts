@@ -1,16 +1,18 @@
 import { query, one } from './db';
 import { BARRIER_SUPPRESSION_THRESHOLD } from '../../shared/models';
-import type { BadgeState, BlockerReason } from '../../shared/models';
+import type { BadgeState, BlockerReason, AccommodationTag } from '../../shared/models';
 
 // =====================================================================
 // Badge recompute — the accountability spine. Recomputed SYNCHRONOUSLY on
 // each follow-up submission (demo scale is tiny; no scheduled job needed).
 //
-// Contributor 3 owns the calibration of these rules. The thresholds are
-// intentionally simple and ARBITRARY for the demo (flag this to judges):
+// Contributor 3 owns the calibration of these rules.
+// BARRIER_SUPPRESSION_THRESHOLD (shared/models.ts) is 1 — a single report
+// flips the badge immediately, prioritizing an end-to-end demo of
+// report -> org sees it -> resolve over aggregation/anonymity:
 //
-//   reported_gap : any single blocker reason reaches the suppression
-//                  threshold (>=5) on this event.
+//   reported_gap : any single blocker reason reaches the threshold on
+//                  this event.
 //   confirmed    : the org has resolved the gap (resolve-gap action), OR
 //                  the event has attendance and zero reports at threshold.
 //   not_yet_verified : default / not enough signal.
@@ -39,6 +41,23 @@ export async function rawBarrierCounts(eventId: string): Promise<BarrierCount[]>
 /** Suppression-applied counts — safe to send to ANY client. */
 export function suppress(counts: BarrierCount[]): BarrierCount[] {
   return counts.filter((c) => c.count >= BARRIER_SUPPRESSION_THRESHOLD);
+}
+
+/**
+ * Accommodation needs mentioned by signups that also reported a blocker on
+ * this event — aggregated + counted only, never joined back to a name.
+ * Gives the org concrete "what to fix" detail beyond the blocker category
+ * (e.g. Accommodation gap -> which specific needs came up).
+ */
+export async function blockerRelatedNeeds(eventId: string): Promise<{ tag: AccommodationTag; count: number }[]> {
+  return query<{ tag: AccommodationTag; count: number }>(
+    `SELECT tag, COUNT(*)::int AS count
+       FROM signups, unnest(needs_flagged) AS tag
+      WHERE event_id = $1 AND blocker IS NOT NULL
+      GROUP BY tag
+      ORDER BY count DESC`,
+    [eventId],
+  );
 }
 
 /**

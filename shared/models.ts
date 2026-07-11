@@ -92,10 +92,12 @@ export interface Signup {
   created_at: string;
 }
 
+/** A swipe on a specific event — category/tag affinity is derived from
+ * these, not recorded directly. See server/src/routes/events.ts. */
 export interface QuickPick {
   id: string;
   user_id: string;
-  event_category: EventCategory;
+  event_id: string;
   response: boolean;
   created_at: string;
 }
@@ -148,8 +150,12 @@ export interface OrgScorecard {
     signups: number;
     attended: number;
     badge_state: BadgeState;
-    /** blockers for THIS event, <5 suppressed */
+    /** blockers for THIS event (suppression-applied below threshold) */
     blockers: { blocker_reason: BlockerReason; count: number }[];
+    /** accommodation needs mentioned by blocker-reporting signups, aggregated
+     * and counted only — never tied to a name. Gives the org concrete detail
+     * ("2 mentioned wheelchair access") without exposing who. */
+    related_needs: { tag: AccommodationTag; count: number }[];
   }[];
 }
 
@@ -188,5 +194,7 @@ export const BADGE_LABELS: Record<BadgeState, string> = {
   reported_gap: 'Barrier reported',
 };
 
-/** Minimum count before a barrier is shown in ANY UI. Re-identification guard. */
-export const BARRIER_SUPPRESSION_THRESHOLD = 5;
+/** Minimum count before a barrier is shown in ANY UI. Set to 1 so a single
+ * report surfaces immediately — the demo prioritizes showing the report ->
+ * org-sees-it -> resolve loop end to end over aggregation/anonymity. */
+export const BARRIER_SUPPRESSION_THRESHOLD = 1;

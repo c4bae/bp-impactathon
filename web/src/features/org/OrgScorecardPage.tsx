@@ -7,7 +7,7 @@ import { api } from '../../api/client';
 import { useSession } from '../../lib/session';
 import { AccessibilityBadge, Button, Card, Spinner } from '../../components/ui';
 import {
-  BARRIER_SUPPRESSION_THRESHOLD, BLOCKER_LABELS, type OrgScorecard,
+  ACCOMMODATION_LABELS, BARRIER_SUPPRESSION_THRESHOLD, BLOCKER_LABELS, type OrgScorecard,
 } from '../../../../shared/models';
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
@@ -97,8 +97,10 @@ export function OrgScorecardPage() {
           </ol>
         )}
         <p className="text-muted text-sm mt-3">
-          To protect privacy, barrier counts under {BARRIER_SUPPRESSION_THRESHOLD} are never shown —
-          here or anywhere else. Thresholds are demo values; a real deployment calibrates them with KW Hab.
+          This demo surfaces a report as soon as it's filed (suppression threshold ={' '}
+          {BARRIER_SUPPRESSION_THRESHOLD}), with aggregated context — never an individual's identity.
+          A real deployment would calibrate a higher reporting threshold with KW Hab before
+          showing anything publicly.
         </p>
       </Card>
 
@@ -128,6 +130,24 @@ export function OrgScorecardPage() {
                     </li>
                   ))}
                 </ul>
+              )}
+              {e.related_needs.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-sm text-muted mb-1">Access needs mentioned by reporters:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {e.related_needs.map((n) => (
+                      <span
+                        key={n.tag}
+                        className="inline-flex items-center rounded-full bg-orange-50 text-badge-gap px-2.5 py-1 text-sm"
+                      >
+                        {ACCOMMODATION_LABELS[n.tag]} ({n.count})
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-muted text-xs mt-1">
+                    Aggregated and counted only — never linked to who reported it.
+                  </p>
+                </div>
               )}
               {e.badge_state === 'reported_gap' && (
                 <div className="mt-3">

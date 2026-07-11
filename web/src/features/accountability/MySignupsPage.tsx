@@ -9,9 +9,10 @@ import {
 } from '../../../../shared/models';
 
 // Contributor 3 — Screen: Post-event follow-up ("My Signups").
-// One-tap attended/not, optional blocker reason. A "simulate day passing"
-// button triggers the day-after prompt in the demo. api.reportAttendance()
-// recomputes the badge server-side. See docs/contributor-3-accountability.md.
+// One-tap attended/not, optional blocker reason. The follow-up prompt opens
+// once the event has genuinely passed (date_end < now) — no demo-only
+// trigger. api.reportAttendance() recomputes the badge server-side.
+// See docs/contributor-3-accountability.md.
 
 const ALL_BLOCKERS = Object.keys(BLOCKER_LABELS) as BlockerReason[];
 
@@ -26,7 +27,6 @@ export function MySignupsPage() {
   const [signups, setSignups] = useState<Signup[] | null>(null);
   const [events, setEvents] = useState<Record<string, EventDetail>>({});
   const [loadError, setLoadError] = useState(false);
-  const [simulatePast, setSimulatePast] = useState(false);
   const [justReported, setJustReported] = useState<Record<string, BadgeState>>({});
 
   useEffect(() => {
@@ -58,21 +58,9 @@ export function MySignupsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+      <div className="mb-4">
         <h1 className="text-2xl font-bold">My signups</h1>
-        <Button
-          variant="secondary"
-          aria-pressed={simulatePast}
-          onClick={() => setSimulatePast((v) => !v)}
-        >
-          <span aria-hidden>⏩</span>
-          {simulatePast ? 'Day passed — undo' : 'Simulate day passing'}
-        </Button>
       </div>
-      <p className="text-muted text-sm mb-4">
-        Demo control: in the real product we check in the day after an event.
-        &ldquo;Simulate day passing&rdquo; shows those check-ins now.
-      </p>
 
       {loadError && (
         <p role="alert" className="text-badge-gap">Couldn&rsquo;t load your signups — try reloading.</p>
@@ -90,7 +78,6 @@ export function MySignupsPage() {
             <SignupRow
               signup={signup}
               event={events[signup.event_id] ?? null}
-              simulatePast={simulatePast}
               justReportedBadge={justReported[signup.id] ?? null}
               onReported={handleReported}
             />
@@ -101,10 +88,9 @@ export function MySignupsPage() {
   );
 }
 
-function SignupRow({ signup, event, simulatePast, justReportedBadge, onReported }: {
+function SignupRow({ signup, event, justReportedBadge, onReported }: {
   signup: Signup;
   event: EventDetail | null;
-  simulatePast: boolean;
   justReportedBadge: BadgeState | null;
   onReported: (updated: Signup, badge: BadgeState) => void;
 }) {
@@ -116,7 +102,7 @@ function SignupRow({ signup, event, simulatePast, justReportedBadge, onReported 
   const isPast = event
     ? new Date(event.date_end ?? event.date_start).getTime() < Date.now()
     : false;
-  const followUpOpen = signup.attended === 'not_yet_reported' && (simulatePast || isPast);
+  const followUpOpen = signup.attended === 'not_yet_reported' && isPast;
 
   async function report(attended: AttendedState, blocker: BlockerReason | null) {
     setSubmitting(true);
@@ -192,8 +178,8 @@ function SignupRow({ signup, event, simulatePast, justReportedBadge, onReported 
         <fieldset>
           <legend className="font-medium mb-1">What got in the way?</legend>
           <p className="text-muted text-sm mb-2">
-            Optional — this helps organizers fix real barriers. It&rsquo;s only ever shown
-            once enough people report the same thing.
+            Optional — this helps organizers fix real barriers. It goes to the
+            organizer as an aggregated report, never tied to your name.
           </p>
           <div className="flex flex-wrap gap-2 mb-2">
             {ALL_BLOCKERS.map((reason) => (

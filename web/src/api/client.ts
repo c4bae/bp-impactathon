@@ -8,7 +8,7 @@ import type {
   EventCategory, AccommodationTag, AttendedState, BlockerReason,
 } from '../../../shared/models';
 import type {
-  CreateEventBody, UpdateEventBody, ExtractedEvent, ResolveGapBody,
+  CreateEventBody, UpdateEventBody, ExtractedEvent, ResolveGapBody, QuickPickCandidate,
 } from '../../../shared/contracts';
 
 const BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
@@ -83,14 +83,15 @@ export const api = {
     });
   },
 
-  // ---- quick picks (Contributor 2) ----
-  quickPicksToday(userId: string): Promise<{ categories: EventCategory[] }> {
+  // ---- quick picks (Contributor 2) — swipes on specific events; category
+  // affinity is derived server-side, never submitted directly ----
+  quickPicksToday(userId: string): Promise<{ events: QuickPickCandidate[] }> {
     return req(`/quick-picks/today?user_id=${userId}`);
   },
-  submitQuickPick(userId: string, category: EventCategory, response: boolean): Promise<QuickPick> {
+  submitQuickPick(userId: string, eventId: string, response: boolean): Promise<QuickPick> {
     return req(`/quick-picks`, {
       method: 'POST',
-      body: JSON.stringify({ user_id: userId, event_category: category, response }),
+      body: JSON.stringify({ user_id: userId, event_id: eventId, response }),
     });
   },
 

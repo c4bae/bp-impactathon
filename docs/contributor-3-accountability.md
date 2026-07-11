@@ -130,15 +130,14 @@ the follow-up prompt:
   `event_badge_state` ("Thanks — this event is now marked **Barrier reported**")
   so the loop is visible.
 
-**"Simulate day passing" button** (demo affordance): the real product triggers
-follow-ups the day after an event. For the demo, put a button at the top —
-"⏩ Simulate day passing" — that simply reveals the follow-up prompts for all
-signups (even future-dated ones). Implement it as local state that flips a
-"treat as past" flag; no backend needed.
+No demo-only trigger: the follow-up prompt opens for real once
+`date_end < now()` for that event. Seed data (`db/seed.sql`) dates the events
+used in demos/tests genuinely in the past so this is always exercisable
+without waiting or faking anything.
 
 Acceptance:
 - [ ] Lists seeded signups for the current demo user.
-- [ ] "Simulate day passing" reveals follow-up prompts.
+- [ ] Follow-up prompts open on their own for past-dated signups.
 - [ ] Reporting `no` + `accommodation_gap` on an event and repeating across
       enough users flips that event's badge (see §5 to test end-to-end).
 - [ ] Blocker step is optional; "Prefer not to say" works.
@@ -177,7 +176,8 @@ the feed — the badge flips.
 
 ## 6. Definition of done
 - [ ] Signup form: optional needs, prominent skip, plain consent, success state.
-- [ ] Follow-up: one-tap attendance + optional blocker + "simulate day passing".
+- [ ] Follow-up: one-tap attendance + optional blocker, opens on its own for
+      genuinely past-dated events.
 - [ ] Submitting a follow-up visibly updates the event's badge state.
 - [ ] Privacy rules (§2) honored throughout.
 - [ ] `npm run typecheck -w web` green.

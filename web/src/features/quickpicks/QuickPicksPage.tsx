@@ -2,34 +2,40 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
 import { useSession } from '../../lib/session';
-import { CATEGORY_LABELS, type EventCategory } from '../../../../shared/models';
-import { Button, Card, Spinner } from '../../components/ui';
+import { Button, Card, Spinner, AccessibilityBadge } from '../../components/ui';
+import { EventCover } from '../discovery/covers';
+import { formatCost, formatEventDate } from '../discovery/format';
+import type { QuickPickCandidate } from '../../../../shared/contracts';
 
-// Contributor 2 — Quick Picks: daily 3-prompt card, one category at a time.
-// Each 👍/👎 feeds the weighted-count ranking heuristic behind /feed.
+// Contributor 2 — Quick Picks: daily swipe deck of specific EVENTS (not
+// broad categories). Each 👍/👎 feeds the ranking heuristic behind /feed —
+// the server derives category affinity from what the swiped events have in
+// common, so this screen just needs to submit the swipe. `embedded` lets it
+// render inline at the top of Discover instead of as its own /quick-picks
+// destination (both routes still work).
 export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
   const { userId } = useSession();
-  const [categories, setCategories] = useState<EventCategory[] | null>(null);
+  const [events, setEvents] = useState<QuickPickCandidate[] | null>(null);
   const [index, setIndex] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [submitNote, setSubmitNote] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setCategories(null);
+    setEvents(null);
     setIndex(0);
     setLoadError(false);
     setSubmitNote(null);
     api.quickPicksToday(userId)
-      .then((r) => { if (!cancelled) setCategories(r.categories); })
+      .then((r) => { if (!cancelled) setEvents(r.events); })
       .catch(() => { if (!cancelled) setLoadError(true); });
     return () => { cancelled = true; };
   }, [userId]);
 
-  function vote(category: EventCategory, response: boolean) {
+  function vote(eventId: string, response: boolean) {
     // Optimistic: advance immediately; a failed save is noted but never
     // retreats the card.
-    api.submitQuickPick(userId, category, response).catch(() =>
+    api.submitQuickPick(userId, eventId, response).catch(() =>
       setSubmitNote('One answer failed to save — it may not count toward your feed today.'),
     );
     setIndex((i) => i + 1);
@@ -44,7 +50,7 @@ export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
     );
   }
 
-  if (categories === null) {
+  if (events === null) {
     return (
       <div className={`flex justify-center ${embedded ? 'py-6' : 'py-12'}`}>
         <Spinner label="Loading Quick Picks" />
@@ -52,14 +58,14 @@ export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
     );
   }
 
-  const done = index >= categories.length;
+  const done = index >= events.length;
 
   if (done) {
     const Heading = embedded ? 'h2' : 'h1';
     return (
       <Card className={`${embedded ? 'w-full bg-brand-light/60 border-brand/20' : 'max-w-md mx-auto'} text-center`}>
         <Heading className="text-2xl font-semibold mb-2">
-          {categories.length > 0 ? 'That’s it for today! 🎉' : 'All caught up! 🎉'}
+          {events.length > 0 ? 'That’s it for today! 🎉' : 'All caught up! 🎉'}
         </Heading>
         <p className={`text-muted ${embedded ? 'mb-0' : 'mb-4'}`}>
           Your picks help us rank events you’ll actually like. Come back tomorrow for more.
@@ -76,7 +82,8 @@ export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
     );
   }
 
-  const category = categories[index];
+  const ev = events[index];
+  const oneLiner = ev.plain_language_description ?? ev.description;
   const Heading = embedded ? 'h2' : 'h1';
 
   return (
@@ -87,30 +94,36 @@ export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
         </Heading>
         <div className="flex items-center gap-2">
           <span className="flex gap-1" aria-hidden>
-            {categories.map((c, i) => (
+            {events.map((e, i) => (
               <span
-                key={c}
+                key={e.id}
                 className={`h-2.5 w-2.5 rounded-full ${i < index ? 'bg-brand' : i === index ? 'bg-brand-dark' : 'bg-black/15'}`}
               />
             ))}
           </span>
-          <span className="text-sm text-muted">{index + 1} of {categories.length}</span>
+          <span className="text-sm text-muted">{index + 1} of {events.length}</span>
         </div>
       </div>
 
       <p aria-live="polite" className="sr-only">
-        Question {index + 1} of {categories.length}
+        Event {index + 1} of {events.length}: {ev.title}
       </p>
 
       <Card className={`text-center ${embedded ? 'py-6 bg-brand-light/60 border-brand/20' : 'py-8'}`}>
-        <h2 className="text-xl mb-6">
-          Interested in <strong>{CATEGORY_LABELS[category]}</strong> events?
-        </h2>
+        <EventCover title={ev.title} category={ev.category} className="w-full h-32 mb-4" />
+        <h3 className="text-xl font-semibold mb-1">{ev.title}</h3>
+        <p className="text-muted text-sm mb-2">
+          {ev.org_name} · {formatEventDate(ev.date_start)} · {formatCost(ev.cost, ev.cost_amount)}
+        </p>
+        <div className="flex justify-center mb-3">
+          <AccessibilityBadge state={ev.accessibility_badge_state} />
+        </div>
+        <p className="mb-6 text-left sm:text-center">{oneLiner}</p>
         <div className="flex justify-center gap-3">
-          <Button onClick={() => vote(category, true)} className="min-w-[130px] text-lg">
-            <span aria-hidden>👍</span> Yes
+          <Button onClick={() => vote(ev.id, true)} className="min-w-[130px] text-lg">
+            <span aria-hidden>👍</span> Interested
           </Button>
-          <Button variant="secondary" onClick={() => vote(category, false)} className="min-w-[130px] text-lg">
+          <Button variant="secondary" onClick={() => vote(ev.id, false)} className="min-w-[130px] text-lg">
             <span aria-hidden>👎</span> Not for me
           </Button>
         </div>

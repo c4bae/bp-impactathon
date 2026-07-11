@@ -6,8 +6,11 @@
 --   DEMO_ORG_ID  = 22222222-2222-2222-2222-222222222222
 --
 -- Badge states are pre-populated so the feed is NOT all 'not_yet_verified'
--- for the demo, AND one event ('Games at the Hangout') has >=5 seeded blocker
--- reports so the aggregation/suppression logic has real data to chew on.
+-- for the demo. 'Games at the Hangout' (event ...0002) is THE demo event —
+-- kept clean (not_yet_verified, zero reports) and tuned to rank first in
+-- both the seeker feed and the org dashboard, so the live demo can walk:
+-- sign up -> report a barrier (flips instantly, threshold=1) -> org sees
+-- it -> resolves it -> seeker sees it confirmed.
 -- Event details were sourced from the public KW Habilitation community
 -- calendar on 2026-07-11.
 -- =====================================================================
@@ -55,10 +58,18 @@ INSERT INTO events
    'Drop in for board games, cards, and good conversation. Come with a friend or meet someone new. Everyone is welcome.',
    'Play board games or cards and talk with people. You can bring a friend or come on your own. Everyone is welcome.',
    ARRAY['social']::event_category[],
-   '2026-07-13 13:30-04', '2026-07-13 15:00-04',
-   'free', NULL, 'all ages', 43.4515, -80.4927, 'The Hangout, 99 Ottawa Street South, Kitchener',
-   ARRAY['plain_language']::accommodation_tag[],
-   'reported_gap', 'form'),
+   -- THE demo event: past-dated (follow-up prompt opens for real, no
+   -- simulate-day-passing trigger exists) and tuned to rank #1 for the
+   -- default demo user in both views — tags match their saved needs,
+   -- coordinates match their saved location exactly, and it's dated
+   -- further back than every other past-dated event so it also sorts
+   -- first in the org dashboard's date-ascending event list.
+   -- Starts clean (not_yet_verified, zero reports): the whole point is to
+   -- watch ONE live report flip it, then watch the org resolve it.
+   NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days' + INTERVAL '1 hour 30 minutes',
+   'free', NULL, 'all ages', 43.4516, -80.4925, 'The Hangout, 99 Ottawa Street South, Kitchener',
+   ARRAY['plain_language','step_free']::accommodation_tag[],
+   'not_yet_verified', 'form'),
 
   ('33333333-0000-0000-0000-000000000003',
    '22222222-2222-2222-2222-222222222222',
@@ -66,18 +77,21 @@ INSERT INTO events
    'Make cookie dough bites in the LEG Up! classroom. For information about accessing LEG Up! activities, contact legup@kwhab.ca.',
    'Make cookie dough bites with the group. Contact LEG Up! to learn how to join.',
    ARRAY['food','social']::event_category[],
-   '2026-07-14 10:00-04', '2026-07-14 12:00-04',
+   -- Past-dated so its follow-up prompt opens for real (5-reporter test).
+   NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day' + INTERVAL '2 hours',
    'paid', NULL, 'adults', 43.4513, -80.4930, 'LEG Up! Classroom, 109 Ottawa Street South, Unit D, Kitchener',
    ARRAY['plain_language','step_free']::accommodation_tag[],
    'not_yet_verified', 'form'),
 
   ('33333333-0000-0000-0000-000000000004',
-   '22222222-2222-2222-2222-000000000004',
+   '22222222-2222-2222-2222-222222222222',
    'Transit Tuesdays',
    'Meet at Fairway Station for a community transit outing. See the calendar listing for the current trip details.',
    'Meet the group at Fairway Station and take transit together.',
    ARRAY['education','social']::event_category[],
-   '2026-07-14 11:00-04', '2026-07-14 16:30-04',
+   -- Past-dated so the demo user's not_yet_reported signup opens a real
+   -- follow-up prompt on My Signups (no simulate-day-passing trigger exists).
+   NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days' + INTERVAL '5 hours 30 minutes',
    'free', NULL, 'all ages', 43.4244, -80.4392, 'Fairway Station, 2960 Kingsway Drive, Kitchener',
    ARRAY['transportation_support','mobility_support']::accommodation_tag[],
    'not_yet_verified', 'voice'),
@@ -110,16 +124,9 @@ INSERT INTO signups (user_id, event_id, needs_flagged, attended, blocker) VALUES
   ('11111111-1111-1111-1111-111111111111', '33333333-0000-0000-0000-000000000001', ARRAY['plain_language']::accommodation_tag[], 'yes', NULL),
   ('11111111-1111-1111-1111-111111111111', '33333333-0000-0000-0000-000000000004', ARRAY['step_free']::accommodation_tag[], 'not_yet_reported', NULL);
 
--- >=5 blocker reports on 'Games at the Hangout' (event ...0002) -> reported_gap.
--- Mix of reasons; 'accommodation_gap' is the plurality.
-INSERT INTO signups (user_id, event_id, needs_flagged, attended, blocker) VALUES
-  ('11111111-1111-1111-1111-000000000002', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'accommodation_gap'),
-  ('11111111-1111-1111-1111-000000000003', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'accommodation_gap'),
-  ('11111111-1111-1111-1111-000000000004', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'transportation'),
-  ('11111111-1111-1111-1111-000000000005', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'accommodation_gap'),
-  ('11111111-1111-1111-1111-000000000006', '33333333-0000-0000-0000-000000000002', '{}', 'partial', 'accommodation_gap'),
-  ('11111111-1111-1111-1111-000000000007', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'accommodation_gap'),
-  ('11111111-1111-1111-1111-000000000008', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'scheduling');
+-- 'Games at the Hangout' (event ...0002) is deliberately left clean here
+-- (not_yet_verified, zero reports) — it's THE demo event; the live demo's
+-- money shot is filing the one report that flips it, live.
 
 -- A few attended=yes across events for retention/scorecard numbers.
 INSERT INTO signups (user_id, event_id, needs_flagged, attended, blocker) VALUES
@@ -129,12 +136,15 @@ INSERT INTO signups (user_id, event_id, needs_flagged, attended, blocker) VALUES
   ('11111111-1111-1111-1111-000000000002', '33333333-0000-0000-0000-000000000006', '{}', 'yes', NULL);
 
 -- ---- Quick Picks -----------------------------------------------------
--- Prior responses for the demo user -> weights the ranking heuristic.
-INSERT INTO quick_picks (user_id, event_category, response) VALUES
-  ('11111111-1111-1111-1111-111111111111', 'arts', true),
-  ('11111111-1111-1111-1111-111111111111', 'social', true),
-  ('11111111-1111-1111-1111-111111111111', 'sports', false),
-  ('11111111-1111-1111-1111-111111111111', 'food', true);
+-- No prior swipes seeded for the demo user: Games at the Hangout (...0002)
+-- needs to rank first in their feed on a clean reset, purely from matching
+-- accommodation needs + proximity + being the most past-dated event —
+-- seeded quick-pick affinity isn't needed and would only add variance.
+-- A non-demo user has swipe history instead, so Quick Picks -> ranking
+-- still has real data to demo separately (see server/src/routes/events.ts).
+INSERT INTO quick_picks (user_id, event_id, response) VALUES
+  ('11111111-1111-1111-1111-000000000002', '33333333-0000-0000-0000-000000000001', true),  -- Ava likes Zentangle (arts, social)
+  ('11111111-1111-1111-1111-000000000002', '33333333-0000-0000-0000-000000000006', false); -- Ava passes on Walk With PCL (sports, health, social)
 
 -- ---- Routes (hand-authored) -----------------------------------------
 INSERT INTO routes (event_id, transit_mode, step_free, nearest_accessible_stop, estimated_time_minutes, steps, cautions) VALUES

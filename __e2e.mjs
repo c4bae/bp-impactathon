@@ -38,7 +38,7 @@ const row = (title) => page.locator('li', { hasText: title });
 // ================= Flow A — signup form (Demo User) =================
 console.log('--- Flow A: signup form ---');
 await asUser(USERS.demo, `/signup/${PAINT}`);
-await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
+await page.locator('h1', { hasText: 'Summer Baking' }).waitFor({ timeout: 10000 });
 check('event title loads', true);
 await page.waitForFunction(
   () => document.querySelectorAll('input[type=checkbox]:checked').length === 2,
@@ -76,12 +76,11 @@ await row('Make It Mondays').locator('text=You went').waitFor({ timeout: 10000 }
 check('already-reported signup shows status', true);
 const rowCount = await page.locator('li').count();
 check('lists all 3 signups', rowCount === 3, `rows=${rowCount}`);
-check('future event hides prompt before simulate',
-  await row('Summer Baking').getByText('check in with you after').isVisible());
-
-await page.getByRole('button', { name: /Simulate day passing/ }).click();
-await row('Summer Baking').locator('legend', { hasText: 'Did you go?' }).waitFor({ timeout: 5000 });
-check('simulate reveals follow-up prompts', true);
+// Summer Baking and Transit Tuesdays are seeded genuinely in the past
+// (db/seed.sql), so their follow-up prompts are open on load — no
+// simulate-day-passing trigger exists in the product anymore.
+await row('Summer Baking').locator('legend', { hasText: 'Did you go?' }).waitFor({ timeout: 10000 });
+check('follow-up prompt is open for a genuinely past event, no trigger needed', true);
 
 // one-tap YES on Transit Tuesdays -> badge recomputes to confirmed
 await row('Transit Tuesdays').getByRole('button', { name: 'Yes, I went' }).click();
@@ -90,7 +89,7 @@ check('one-tap "yes" reports and surfaces badge',
   (await row('Transit Tuesdays').locator('[role="status"]', { hasText: 'now marked' }).textContent())
     .includes('Accessibility confirmed'));
 
-// NO + "Prefer not to say" on Paint Night (optional blocker honored)
+// NO + "Prefer not to say" on Summer Baking (optional blocker honored)
 await row('Summer Baking').getByRole('button', { name: 'No', exact: true }).click();
 await row('Summer Baking').locator('legend', { hasText: 'What got in the way?' }).waitFor({ timeout: 5000 });
 check('blocker question revealed after "No"', true);
@@ -105,7 +104,7 @@ console.log('--- Flow C: 5 users report accommodation_gap -> badge flips ---');
 const reporters = [USERS.ava, USERS.ben, USERS.cara, USERS.dev, USERS.elu];
 for (let i = 0; i < reporters.length; i++) {
   await asUser(reporters[i], `/signup/${PAINT}`);
-  await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
+  await page.locator('h1', { hasText: 'Summer Baking' }).waitFor({ timeout: 10000 });
   await page.getByRole('button', { name: /Sign me up — quick & private/ }).click();
   await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
   if (i === 0) {
@@ -113,11 +112,11 @@ for (let i = 0; i < reporters.length; i++) {
       await page.getByText('didn’t share any access needs').isVisible());
   }
   await page.goto(`${BASE}/my-signups`);
-  await page.getByRole('button', { name: /Simulate day passing/ }).click();
-  await row('Paint Night').getByRole('button', { name: 'No', exact: true }).click();
-  await row('Paint Night').getByRole('button', { name: 'Accommodation gap' }).click();
-  await row('Paint Night').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
-  const status = await row('Paint Night').locator('[role="status"]', { hasText: 'now marked' }).textContent();
+  await row('Summer Baking').locator('legend', { hasText: 'Did you go?' }).waitFor({ timeout: 10000 });
+  await row('Summer Baking').getByRole('button', { name: 'No', exact: true }).click();
+  await row('Summer Baking').getByRole('button', { name: 'Accommodation gap' }).click();
+  await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
+  const status = await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).textContent();
   const expectFlip = i === reporters.length - 1;
   check(
     `report ${i + 1}/5 -> ${expectFlip ? 'FLIPS to Barrier reported' : 'stays suppressed (Not yet verified)'}`,
