@@ -7,7 +7,7 @@ import { api } from '../../api/client';
 import { useSession } from '../../lib/session';
 import { AccessibilityBadge, Button, Card, Spinner } from '../../components/ui';
 import {
-  ACCOMMODATION_LABELS, BARRIER_SUPPRESSION_THRESHOLD, BLOCKER_LABELS, type OrgScorecard,
+  ACCOMMODATION_LABELS, BLOCKER_LABELS, type OrgScorecard,
 } from '../../../../shared/models';
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
@@ -96,12 +96,6 @@ export function OrgScorecardPage() {
             ))}
           </ol>
         )}
-        <p className="text-muted text-sm mt-3">
-          This demo surfaces a report as soon as it's filed (suppression threshold ={' '}
-          {BARRIER_SUPPRESSION_THRESHOLD}), with aggregated context — never an individual's identity.
-          A real deployment would calibrate a higher reporting threshold with KW Hab before
-          showing anything publicly.
-        </p>
       </Card>
 
       {resolvedMsg && (

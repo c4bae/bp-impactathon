@@ -85,8 +85,11 @@ events.get('/', async (req, res) => {
     const reasons: string[] = [];
     let score = 0;
 
-    // quick-pick affinity
-    const aff = e.category.reduce((n, c) => n + (affinity.get(c) || 0), 0);
+    // quick-pick affinity — capped so casual swipe activity nudges ranking
+    // without being able to unboundedly outweigh accessibility fit, which
+    // matters more for this product than general interest.
+    const rawAff = e.category.reduce((n, c) => n + (affinity.get(c) || 0), 0);
+    const aff = Math.max(-2, Math.min(2, rawAff));
     if (aff > 0) { score += W.quickPick * aff; reasons.push('matches your Quick Picks'); }
 
     // accommodation overlap with saved needs

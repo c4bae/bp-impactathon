@@ -57,13 +57,17 @@ INSERT INTO events
    'Games at the Hangout',
    'Drop in for board games, cards, and good conversation. Come with a friend or meet someone new. Everyone is welcome.',
    'Play board games or cards and talk with people. You can bring a friend or come on your own. Everyone is welcome.',
-   ARRAY['social']::event_category[],
+   -- Two categories (matches the real synced duplicate listing) so quick-pick
+   -- affinity can reach its cap just as easily as any rival event — see the
+   -- affinity cap in server/src/routes/events.ts.
+   ARRAY['social','sports']::event_category[],
    -- THE demo event: past-dated (follow-up prompt opens for real, no
    -- simulate-day-passing trigger exists) and tuned to rank #1 for the
-   -- default demo user in both views — tags match their saved needs,
-   -- coordinates match their saved location exactly, and it's dated
-   -- further back than every other past-dated event so it also sorts
-   -- first in the org dashboard's date-ascending event list.
+   -- default demo user in both views — tags match their saved needs
+   -- exactly (no rival event ties this), coordinates match their saved
+   -- location exactly, and it's dated further back than every other
+   -- past-dated event so it also sorts first in the org dashboard's
+   -- date-ascending event list.
    -- Starts clean (not_yet_verified, zero reports): the whole point is to
    -- watch ONE live report flip it, then watch the org resolve it.
    NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days' + INTERVAL '1 hour 30 minutes',
@@ -80,7 +84,9 @@ INSERT INTO events
    -- Past-dated so its follow-up prompt opens for real (5-reporter test).
    NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day' + INTERVAL '2 hours',
    'paid', NULL, 'adults', 43.4513, -80.4930, 'LEG Up! Classroom, 109 Ottawa Street South, Unit D, Kitchener',
-   ARRAY['plain_language','step_free']::accommodation_tag[],
+   -- Only one need matches (not two, like the demo event) — keeps this from
+   -- tying Games at the Hangout on accommodation-fit score.
+   ARRAY['plain_language']::accommodation_tag[],
    'not_yet_verified', 'form'),
 
   ('33333333-0000-0000-0000-000000000004',
