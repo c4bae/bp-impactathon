@@ -1,4 +1,9 @@
-import 'dotenv/config';
+// Must be the first import: ESM evaluates imports in dependency-graph order,
+// so a plain top-level statement here would run AFTER later imports (like
+// './services/ai', which reads process.env.AI_MODE at module-eval time) —
+// this needs to be a self-contained side-effect import, same as the
+// 'dotenv/config' pattern it replaces, to actually run first.
+import './env';
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db';
