@@ -7,6 +7,9 @@ import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
+// Leaflet's Icon.Default resolves icon paths from the stylesheet URL, which
+// breaks under Vite; drop that resolver so the bundled URLs above are used.
+delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl: iconRetina, shadowUrl });
 
 // Renders the hand-authored route on an OSM map. Supplementary visual only —
