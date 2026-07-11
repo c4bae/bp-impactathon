@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { DemoSwitcher } from './DemoSwitcher';
 import { useSession } from '../lib/session';
+import { AccessibilityMenu } from './AccessibilityMenu';
 
 // Two disjoint nav sets — which one shows depends on the View toggle in
 // DemoSwitcher, mirroring the two real audiences this product has (seekers
@@ -65,6 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-black/10 text-center text-muted text-sm py-4">
         KW Hab Community Discovery — hackathon MVP. Accommodation tags are functional needs, never diagnoses.
       </footer>
+      <AccessibilityMenu />
     </div>
   );
 }
