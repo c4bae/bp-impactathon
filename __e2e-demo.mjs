@@ -8,8 +8,8 @@ import { stage } from './scripts/demo-stage.mjs';
 const BASE = 'http://localhost:5173';
 const API = 'http://localhost:4000';
 const AVA = '11111111-1111-1111-1111-000000000002';
-const KITCHEN_TITLE = 'Community Kitchen';
-const BASKETBALL = '33333333-0000-0000-0000-000000000004';
+const FEATURED_TITLE = 'Games at the Hangout';
+const TRANSIT = '33333333-0000-0000-0000-000000000004';
 
 let failures = 0;
 const check = (label, ok, extra = '') => {
@@ -32,7 +32,7 @@ page.on('console', (m) => {
   if (m.type() === 'error' && !m.location()?.url?.includes('favicon')) pageErrors.push(m.text());
 });
 
-const kitchenCard = () => page.locator('li', { hasText: KITCHEN_TITLE });
+const featuredCard = () => page.locator('li', { hasText: FEATURED_TITLE });
 const started = Date.now();
 
 // ---- 0:00 Discover, as Ava --------------------------------------------
@@ -40,14 +40,14 @@ console.log('--- Beat 1: Discover (feed) ---');
 await page.goto(`${BASE}/`);
 await page.evaluate((uid) => localStorage.setItem('kwhab.user_id', uid), AVA);
 await page.goto(`${BASE}/feed`);
-await kitchenCard().waitFor({ timeout: 15000 });
-check('feed lists Community Kitchen', true);
+await featuredCard().waitFor({ timeout: 15000 });
+check('feed lists Games at the Hangout', true);
 check('pre-demo badge is "Not yet verified" (4 reports suppressed)',
-  await kitchenCard().getByText('Not yet verified').isVisible());
+  await featuredCard().getByText('Not yet verified').isVisible());
 check('no barrier info leaks below threshold',
-  !(await kitchenCard().getByText('Barrier reported').isVisible()));
+  !(await featuredCard().getByText('Barrier reported').isVisible()));
 
-const readToggle = kitchenCard().getByRole('switch').first();
+const readToggle = featuredCard().getByRole('switch').first();
 await readToggle.click();
 await page.waitForTimeout(1500); // let the ElevenLabs fetch + <audio> kick in
 check('live ElevenLabs read-aloud engages on the feed card',
@@ -69,10 +69,10 @@ await page.waitForURL('**/feed', { timeout: 10000 });
 await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 check('feed reloads after Quick Picks', true);
 
-await page.goto(`${BASE}/events/${BASKETBALL}`);
-await page.locator('h1', { hasText: 'Adaptive Basketball Drop-In' }).waitFor({ timeout: 10000 });
+await page.goto(`${BASE}/events/${TRANSIT}`);
+await page.locator('h1', { hasText: 'Transit Tuesdays' }).waitFor({ timeout: 10000 });
 await page.getByRole('link', { name: 'How do I get there?' }).click();
-await page.waitForURL(`**/events/${BASKETBALL}/route`, { timeout: 10000 });
+await page.waitForURL(`**/events/${TRANSIT}/route`, { timeout: 10000 });
 await page.locator('h1', { hasText: 'Getting there' }).waitFor({ timeout: 10000 });
 check('route renders the seeded 4-step bus route', (await page.locator('ol li').count()) === 4);
 const speakToggle = page.getByRole('switch').first(); // label flips Speak<->Stop; match by role, not name
@@ -89,8 +89,8 @@ await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 1000
 // Plain click on a card title opens the Discover slide-over (role=dialog),
 // not full navigation — the CTAs inside it (shared with the full page via
 // EventDetailBody) are plain, un-intercepted Links.
-await kitchenCard().getByRole('link', { name: /Community Kitchen/ }).click();
-await page.getByRole('dialog', { name: 'Event details' }).getByRole('heading', { name: KITCHEN_TITLE }).waitFor({ timeout: 10000 });
+await featuredCard().getByRole('link', { name: /Games at the Hangout/ }).click();
+await page.getByRole('dialog', { name: 'Event details' }).getByRole('heading', { name: FEATURED_TITLE }).waitFor({ timeout: 10000 });
 await page.getByRole('link', { name: 'Sign me up' }).click();
 await page.locator('h1', { hasText: 'Sign up' }).waitFor({ timeout: 10000 });
 await page.waitForFunction(
@@ -109,17 +109,12 @@ check('signup confirmed', true);
 await page.getByRole('link', { name: 'See my signups' }).click();
 await page.waitForURL('**/my-signups');
 
-// ---- Follow-up -> the flip ----------------------------------------------
-// No "Simulate day passing" click: Community Kitchen is seeded dated in the
-// past (see db/seed.sql), so MySignupsPage's own isPast gate opens the
-// follow-up prompt for real — nothing simulated.
-console.log('--- Beat 3: follow-up, 5th report flips the badge (no simulate click) ---');
-check('follow-up prompt is open without clicking Simulate day passing',
-  await kitchenCard().locator('legend', { hasText: 'Did you go?' })
-    .waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false));
-await kitchenCard().getByRole('button', { name: 'No', exact: true }).click();
-await kitchenCard().getByRole('button', { name: 'Accommodation gap' }).click();
-const flipStatus = kitchenCard().locator('[role="status"]', { hasText: 'now marked' });
+// ---- 0:50 Follow-up -> the flip ---------------------------------------
+console.log('--- Beat 3: follow-up, 5th report flips the badge ---');
+await page.getByRole('button', { name: /Simulate day passing/ }).click();
+await featuredCard().getByRole('button', { name: 'No', exact: true }).click();
+await featuredCard().getByRole('button', { name: 'Accommodation gap' }).click();
+const flipStatus = featuredCard().locator('[role="status"]', { hasText: 'now marked' });
 await flipStatus.waitFor({ timeout: 5000 });
 check('Ava\'s 5th report flips badge to "Barrier reported" live',
   (await flipStatus.textContent()).includes('Barrier reported'));
@@ -142,7 +137,7 @@ check('second tab (org session) independently sees Ava\'s report via the real AP
   (await blockers.textContent()).includes('5 report'));
 check('privacy threshold footnote on screen',
   await orgPage.getByText('are never shown').isVisible());
-await orgPage.getByRole('button', { name: /Resolve accessibility gap for .*Community Kitchen/ }).click();
+await orgPage.getByRole('button', { name: /Resolve accessibility gap for .*Games at the Hangout/ }).click();
 await orgPage.locator('[role="status"]', { hasText: 'Accessibility confirmed' }).waitFor({ timeout: 5000 });
 check('resolve-gap confirms with a status message in the org tab', true);
 await orgPage.locator('section[aria-label="Your events"]')
@@ -154,7 +149,7 @@ await orgPage.close();
 // ---- Back in Ava's original tab: no reload trick, just revisit -----------
 console.log('--- Beat 5: loop closes, visible from Ava\'s original tab ---');
 await page.getByRole('link', { name: 'Discover', exact: true }).click();
-await kitchenCard().getByText('Accessibility confirmed').first().waitFor({ timeout: 10000 });
+await featuredCard().getByText('Accessibility confirmed').first().waitFor({ timeout: 10000 });
 check('Ava\'s original tab reflects the org\'s live resolve-gap (real server round trip)', true);
 
 // ---- 2:30 Post an event by voice (C4, live OpenRouter + ElevenLabs) ----

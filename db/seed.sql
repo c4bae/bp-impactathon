@@ -6,8 +6,10 @@
 --   DEMO_ORG_ID  = 22222222-2222-2222-2222-222222222222
 --
 -- Badge states are pre-populated so the feed is NOT all 'not_yet_verified'
--- for the demo, AND one event ('Community Kitchen') has >=5 seeded blocker
+-- for the demo, AND one event ('Games at the Hangout') has >=5 seeded blocker
 -- reports so the aggregation/suppression logic has real data to chew on.
+-- Event details were sourced from the public KW Habilitation community
+-- calendar on 2026-07-11.
 -- =====================================================================
 
 -- ---- Orgs ------------------------------------------------------------
@@ -37,74 +39,70 @@ INSERT INTO events
    accommodation_tags, accessibility_badge_state, created_via) VALUES
 
   ('33333333-0000-0000-0000-000000000001',
-   '22222222-2222-2222-2222-000000000002',
-   'Sensory-Friendly Morning at the Library',
-   'A quieter library hour with dimmed lighting, reduced noise, and fidget tools available at the front desk. Drop in any time between 9 and 11am.',
-   'A calm morning at the library. Soft lights and less noise. Come any time from 9 to 11am. Free.',
-   ARRAY['social','education']::event_category[],
-   '2026-07-18 09:00-04', '2026-07-18 11:00-04',
-   'free', NULL, 'all ages', 43.4643, -80.5204, '35 Albert St, Waterloo',
-   ARRAY['sensory_friendly','quiet_space','step_free','plain_language']::accommodation_tag[],
-   'confirmed', 'form'),
+   '22222222-2222-2222-2222-222222222222',
+   'Make It Mondays - Zentangle with Duke',
+   'Create Zentangle art with Duke at LEG Up! For information about accessing LEG Up! activities, contact legup@kwhab.ca.',
+   'Make Zentangle art with Duke. Contact LEG Up! to learn how to join.',
+   ARRAY['arts','social']::event_category[],
+   '2026-07-13 13:00-04', '2026-07-13 15:00-04',
+   'free', NULL, 'adults', 43.4513, -80.4930, 'LEG Up! Classroom, 109 Ottawa Street South, Unit D, Kitchener',
+   ARRAY['plain_language','step_free']::accommodation_tag[],
+   'not_yet_verified', 'form'),
 
   ('33333333-0000-0000-0000-000000000002',
    '22222222-2222-2222-2222-222222222222',
-   'Community Kitchen: Cook & Share',
-   'Cook a shared meal together and take a portion home. All ingredients provided. Kitchen is on the second floor.',
-   'Cook a meal with others and take some home. Food is provided. The kitchen is upstairs.',
-   ARRAY['food','social']::event_category[],
-   -- Deliberately dated in the past (relative to whenever the seed runs), not
-   -- a fixed literal like the other events: the accountability demo needs
-   -- this event's follow-up prompt to open for real (MySignupsPage gates on
-   -- date_end < now()), with no "Simulate day passing" button click needed.
-   NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days' + INTERVAL '2 hours',
-   'free', NULL, 'adults', 43.4516, -80.4925, '108 Sydney St S, Kitchener',
+   'Games at the Hangout',
+   'Drop in for board games, cards, and good conversation. Come with a friend or meet someone new. Everyone is welcome.',
+   'Play board games or cards and talk with people. You can bring a friend or come on your own. Everyone is welcome.',
+   ARRAY['social']::event_category[],
+   '2026-07-13 13:30-04', '2026-07-13 15:00-04',
+   'free', NULL, 'all ages', 43.4515, -80.4927, 'The Hangout, 99 Ottawa Street South, Kitchener',
    ARRAY['plain_language']::accommodation_tag[],
    'reported_gap', 'form'),
 
   ('33333333-0000-0000-0000-000000000003',
-   '22222222-2222-2222-2222-000000000003',
-   'Open Studio: Paint Night',
-   'A relaxed evening of painting. No experience needed. Materials included. Cash bar on site.',
-   'Paint for fun in the evening. You do not need experience. Paint and brushes are provided. $10.',
-   ARRAY['arts','social']::event_category[],
-   '2026-07-20 18:00-04', '2026-07-20 20:00-04',
-   'paid', 10.00, 'adults', 43.4560, -80.4880, '22 King St S, Waterloo',
-   ARRAY['wheelchair_access','step_free']::accommodation_tag[],
+   '22222222-2222-2222-2222-222222222222',
+   'Summer Baking - Cookie Dough Bites',
+   'Make cookie dough bites in the LEG Up! classroom. For information about accessing LEG Up! activities, contact legup@kwhab.ca.',
+   'Make cookie dough bites with the group. Contact LEG Up! to learn how to join.',
+   ARRAY['food','social']::event_category[],
+   '2026-07-14 10:00-04', '2026-07-14 12:00-04',
+   'paid', NULL, 'adults', 43.4513, -80.4930, 'LEG Up! Classroom, 109 Ottawa Street South, Unit D, Kitchener',
+   ARRAY['plain_language','step_free']::accommodation_tag[],
    'not_yet_verified', 'form'),
 
   ('33333333-0000-0000-0000-000000000004',
    '22222222-2222-2222-2222-000000000004',
-   'Adaptive Basketball Drop-In',
-   'Wheelchair and standing players welcome. Sport wheelchairs available to borrow. Gym is step-free with accessible washrooms.',
-   'Basketball for everyone. You can borrow a sport wheelchair. The gym is easy to get into. Free.',
-   ARRAY['sports','health']::event_category[],
-   '2026-07-21 19:00-04', '2026-07-21 20:30-04',
-   'free', NULL, 'all ages', 43.4400, -80.4800, '250 Hospital Rd, Kitchener',
-   ARRAY['wheelchair_access','step_free','mobility_support']::accommodation_tag[],
-   'confirmed', 'voice'),
+   'Transit Tuesdays',
+   'Meet at Fairway Station for a community transit outing. See the calendar listing for the current trip details.',
+   'Meet the group at Fairway Station and take transit together.',
+   ARRAY['education','social']::event_category[],
+   '2026-07-14 11:00-04', '2026-07-14 16:30-04',
+   'free', NULL, 'all ages', 43.4244, -80.4392, 'Fairway Station, 2960 Kingsway Drive, Kitchener',
+   ARRAY['transportation_support','mobility_support']::accommodation_tag[],
+   'not_yet_verified', 'voice'),
 
   ('33333333-0000-0000-0000-000000000005',
-   '22222222-2222-2222-2222-000000000002',
-   'Plain-Language Job Club',
-   'Weekly session to work on resumes and practice interviews together. Support staff on hand. ASL interpreter available on request.',
-   'Get help with your resume and practice interviews. Staff will help you. Free.',
-   ARRAY['employment','education']::event_category[],
-   '2026-07-22 13:00-04', '2026-07-22 15:00-04',
-   'free', NULL, 'adults', 43.4643, -80.5204, '35 Albert St, Waterloo',
-   ARRAY['plain_language','asl_interpretation','step_free']::accommodation_tag[],
+   '22222222-2222-2222-2222-222222222222',
+   'Bring Along Sing Along',
+   'Join a community sing-along in Victoria Park near the outdoor gym. Free accessible parking is available at 80 Schneider Road.',
+   'Sing songs with the group in Victoria Park. Free accessible parking is nearby.',
+   ARRAY['arts','social','outdoors']::event_category[],
+   '2026-07-15 11:00-04', '2026-07-15 12:00-04',
+   'free', NULL, 'all ages', 43.4472, -80.5002, 'Victoria Park near the outdoor gym, Kitchener',
+   ARRAY['wheelchair_access','step_free','low_cost']::accommodation_tag[],
    'not_yet_verified', 'form'),
 
   ('33333333-0000-0000-0000-000000000006',
    '22222222-2222-2222-2222-000000000004',
-   'Accessible Nature Walk — Huron Natural Area',
-   'A guided walk on the paved, step-free trail loop. Benches every 200m. Service animals welcome.',
-   'A slow guided walk on a flat, paved path. There are benches to rest. Free.',
-   ARRAY['outdoors','health']::event_category[],
-   '2026-07-25 10:00-04', '2026-07-25 11:30-04',
-   'free', NULL, 'all ages', 43.4050, -80.4300, '801 Trillium Dr, Kitchener',
-   ARRAY['step_free','service_animal_friendly','mobility_support','transportation_support']::accommodation_tag[],
-   'confirmed', 'form');
+   'Walk With PCL',
+   'Join the PCL walking group at the indoor track at Waterloo Memorial Recreation Complex.',
+   'Walk indoors with the group at the Waterloo Memorial Recreation Complex.',
+   ARRAY['sports','health','social']::event_category[],
+   '2026-07-15 12:45-04', '2026-07-15 13:35-04',
+   'free', NULL, 'all ages', 43.4658, -80.5274, 'Waterloo Memorial Recreation Complex, 101 Father David Bauer Drive, Waterloo',
+   ARRAY['step_free','mobility_support','low_cost']::accommodation_tag[],
+   'not_yet_verified', 'form');
 
 -- ---- Signups ---------------------------------------------------------
 -- Demo user is signed up for a couple of events (drives "my signups").
@@ -112,8 +110,8 @@ INSERT INTO signups (user_id, event_id, needs_flagged, attended, blocker) VALUES
   ('11111111-1111-1111-1111-111111111111', '33333333-0000-0000-0000-000000000001', ARRAY['plain_language']::accommodation_tag[], 'yes', NULL),
   ('11111111-1111-1111-1111-111111111111', '33333333-0000-0000-0000-000000000004', ARRAY['step_free']::accommodation_tag[], 'not_yet_reported', NULL);
 
--- >=5 blocker reports on 'Community Kitchen' (event ...0002) -> reported_gap.
--- Mix of reasons; 'accommodation_gap' is the plurality (the 2nd-floor kitchen).
+-- >=5 blocker reports on 'Games at the Hangout' (event ...0002) -> reported_gap.
+-- Mix of reasons; 'accommodation_gap' is the plurality.
 INSERT INTO signups (user_id, event_id, needs_flagged, attended, blocker) VALUES
   ('11111111-1111-1111-1111-000000000002', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'accommodation_gap'),
   ('11111111-1111-1111-1111-000000000003', '33333333-0000-0000-0000-000000000002', '{}', 'no', 'accommodation_gap'),
@@ -140,31 +138,28 @@ INSERT INTO quick_picks (user_id, event_category, response) VALUES
 
 -- ---- Routes (hand-authored) -----------------------------------------
 INSERT INTO routes (event_id, transit_mode, step_free, nearest_accessible_stop, estimated_time_minutes, steps, cautions) VALUES
-  ('33333333-0000-0000-0000-000000000004', 'bus', true, 'Hospital Rd @ Green Valley (accessible boarding)', 22,
+  ('33333333-0000-0000-0000-000000000004', 'bus', true, 'Fairway Station', 22,
    '[
-     {"text": "Board Route 8 at your stop toward Fairview Mall.", "lat": 43.4516, "lng": -80.4925},
-     {"text": "Ride 6 stops. The bus has a ramp and priority seating.", "lat": 43.4460, "lng": -80.4860},
-     {"text": "Get off at Hospital Rd @ Green Valley. Step-free curb here.", "lat": 43.4405, "lng": -80.4810},
-     {"text": "Walk 120m along the paved path to the gym entrance (no stairs).", "lat": 43.4400, "lng": -80.4800}
+     {"text": "Board an accessible GRT service toward Fairway Station.", "lat": 43.4516, "lng": -80.4925},
+     {"text": "Use the stop display or ask the operator for Fairway Station.", "lat": 43.4400, "lng": -80.4680},
+     {"text": "Get off at Fairway Station using the platform ramp.", "lat": 43.4248, "lng": -80.4385},
+     {"text": "Meet the group in the station at 2960 Kingsway Drive.", "lat": 43.4244, "lng": -80.4392}
    ]'::jsonb,
    '[
-     {"text": "Construction on Hospital Rd — sidewalk narrows near the stop", "severity": "caution"}
+     {"text": "Confirm the current GRT route and accessibility notices before leaving", "severity": "caution"}
    ]'::jsonb),
 
-  ('33333333-0000-0000-0000-000000000006', 'walk', true, 'Trillium Dr @ Huron (step-free)', 12,
+  ('33333333-0000-0000-0000-000000000006', 'walk', true, 'Waterloo Memorial Recreation Complex', 12,
    '[
-     {"text": "Head south on Trillium Dr on the paved sidewalk.", "lat": 43.4080, "lng": -80.4320},
-     {"text": "The trailhead has a step-free ramp and a rest bench.", "lat": 43.4060, "lng": -80.4305},
-     {"text": "Follow the paved loop. Benches every 200m.", "lat": 43.4050, "lng": -80.4300}
+     {"text": "Follow the paved path toward Waterloo Memorial Recreation Complex.", "lat": 43.4640, "lng": -80.5230},
+     {"text": "Continue to the main recreation-complex entrance.", "lat": 43.4652, "lng": -80.5265},
+     {"text": "Meet the walking group by the indoor track.", "lat": 43.4658, "lng": -80.5274}
    ]'::jsonb,
-   '[
-     {"text": "Short gravel stretch (~50 m) before the paved loop", "severity": "caution"},
-     {"text": "No accessible washroom at the trailhead", "severity": "barrier"}
-   ]'::jsonb),
+   '[]'::jsonb),
 
-  ('33333333-0000-0000-0000-000000000001', 'walk', true, 'Albert St @ Bridgeport (step-free)', 8,
+  ('33333333-0000-0000-0000-000000000001', 'walk', true, 'Ottawa St S @ Charles St', 8,
    '[
-     {"text": "Walk north on Albert St. Curb cuts at every corner.", "lat": 43.4630, "lng": -80.5210},
-     {"text": "Library main entrance is level with automatic doors.", "lat": 43.4643, "lng": -80.5204}
+     {"text": "Follow the sidewalk toward 109 Ottawa Street South.", "lat": 43.4506, "lng": -80.4942},
+     {"text": "Enter Unit D and meet the group in the LEG Up! classroom.", "lat": 43.4513, "lng": -80.4930}
    ]'::jsonb,
    '[]'::jsonb);

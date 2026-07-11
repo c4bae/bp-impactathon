@@ -13,7 +13,6 @@ import { useSession } from '../lib/session';
 const USER_NAV = [
   { to: '/', label: 'Discover', end: true },
   { to: '/calendar', label: 'Calendar' },
-  { to: '/quick-picks', label: 'Quick Picks' },
   { to: '/my-signups', label: 'My Signups' },
 ];
 const ORG_NAV = [

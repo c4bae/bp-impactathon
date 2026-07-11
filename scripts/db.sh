@@ -19,6 +19,9 @@ fi
 load() {
   psql -q -d "$DB" -v ON_ERROR_STOP=1 -f "$HERE/db/schema.sql"
   psql -q -d "$DB" -v ON_ERROR_STOP=1 -f "$HERE/db/seed.sql"
+  if [ -f "$HERE/db/teamup-events.generated.sql" ]; then
+    psql -q -d "$DB" -v ON_ERROR_STOP=1 -f "$HERE/db/teamup-events.generated.sql"
+  fi
   echo "✅ '$DB' schema + seed loaded."
 }
 

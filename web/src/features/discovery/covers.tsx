@@ -1,44 +1,69 @@
-// Contributor 1 — decorative event "cover" tiles. Events have no image
-// field, so covers are deterministic gradient + category icon (Luma-style
-// thumbnails without asset hosting).
-import {
-  Palette, Bike, BookOpen, Users, HeartPulse, Briefcase, Baby,
-  UtensilsCrossed, Trees, Laptop, type LucideIcon,
-} from 'lucide-react';
+// Contributor 1 — category-specific stock photography for events that do not
+// have their own uploaded image yet. Keeping these assets local makes covers
+// reliable in demos and gives every category an immediately recognizable cue.
 import type { EventCategory } from '../../../../shared/models';
 
-export const CATEGORY_ICONS: Record<EventCategory, LucideIcon> = {
-  arts: Palette, sports: Bike, education: BookOpen, social: Users,
-  health: HeartPulse, employment: Briefcase, family: Baby,
-  food: UtensilsCrossed, outdoors: Trees, tech: Laptop,
+// Familiar pictograms are easier to identify at a glance than abstract line
+// icons. Text labels always appear alongside these in interactive controls.
+export const CATEGORY_GLYPHS: Record<EventCategory, string> = {
+  arts: '🎨',
+  sports: '⚽',
+  education: '📚',
+  social: '🤝',
+  health: '❤️',
+  employment: '💼',
+  family: '👨‍👩‍👧',
+  food: '🍽️',
+  outdoors: '🌳',
+  tech: '💻',
 };
 
-const TILE: Record<EventCategory, string> = {
-  arts: 'from-pink-100 to-rose-200 text-rose-700',
-  sports: 'from-orange-100 to-amber-200 text-amber-700',
-  education: 'from-sky-100 to-blue-200 text-blue-700',
-  social: 'from-violet-100 to-purple-200 text-purple-700',
-  health: 'from-emerald-100 to-teal-200 text-teal-700',
-  employment: 'from-slate-100 to-gray-200 text-gray-700',
-  family: 'from-yellow-100 to-amber-200 text-amber-700',
-  food: 'from-red-100 to-orange-200 text-orange-700',
-  outdoors: 'from-green-100 to-emerald-200 text-emerald-700',
-  tech: 'from-cyan-100 to-sky-200 text-sky-700',
+const CATEGORY_COVERS: Record<EventCategory, string> = {
+  arts: '/event-covers/arts.jpg',
+  sports: '/event-covers/sports.jpg',
+  education: '/event-covers/education.jpg',
+  social: '/event-covers/social.jpg',
+  health: '/event-covers/health.jpg',
+  employment: '/event-covers/employment.jpg',
+  family: '/event-covers/family.jpg',
+  food: '/event-covers/food.jpg',
+  outdoors: '/event-covers/outdoors.jpg',
+  tech: '/event-covers/tech.jpg',
 };
 
-export function EventCover({ category, className = '', iconClassName = 'w-8 h-8' }: {
+const EVENT_COVERS: { pattern: RegExp; src: string }[] = [
+  { pattern: /karaoke|sing along|jukebox|open mic|music|song/i, src: '/event-covers/karaoke.jpg' },
+  { pattern: /transit/i, src: '/event-covers/transit.jpg' },
+  { pattern: /walk|hike|trail/i, src: '/event-covers/community-walk.jpg' },
+  { pattern: /zentangle|watercolou?r|art|paint|coaster|postcard|pebble/i, src: '/event-covers/art-class.jpg' },
+  { pattern: /bingo|games?|yahtzee|cards?/i, src: '/event-covers/bingo.jpg' },
+  { pattern: /baking|bread|cookie|pizza|brunch|lunch|jam|pickle|ketchup|cheesecake|popcorn/i, src: '/event-covers/baking.jpg' },
+  { pattern: /coffee|cafe|hangout|chats?|circles/i, src: '/event-covers/coffee-chat.jpg' },
+];
+
+export function eventCoverSrc(title: string, category: EventCategory[]): string {
+  return EVENT_COVERS.find(({ pattern }) => pattern.test(title))?.src
+    ?? CATEGORY_COVERS[category[0] ?? 'social'];
+}
+
+export function EventCover({ title = '', category, className = '' }: {
+  title?: string;
   category: EventCategory[];
   className?: string;
-  iconClassName?: string;
 }) {
-  const c: EventCategory = category[0] ?? 'social';
-  const Icon = CATEGORY_ICONS[c];
   return (
     <div
       aria-hidden
-      className={`bg-gradient-to-br ${TILE[c]} rounded-xl flex items-center justify-center select-none shrink-0 ${className}`}
+      className={`relative overflow-hidden rounded-xl bg-brand-light select-none shrink-0 ${className}`}
     >
-      <Icon className={iconClassName} strokeWidth={1.75} />
+      <img
+        src={eventCoverSrc(title, category)}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <span className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[inherit]" />
     </div>
   );
 }

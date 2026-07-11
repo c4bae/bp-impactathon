@@ -46,7 +46,7 @@ export function EventDetailBody({ detail, titleAs: TitleTag = 'h1' }: {
 
   return (
     <div className="flex flex-col gap-6">
-      <EventCover category={detail.category} className="w-full h-44 rounded-2xl" iconClassName="w-14 h-14" />
+      <EventCover title={detail.title} category={detail.category} className="w-full h-56 sm:h-72 rounded-2xl" />
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -60,11 +60,18 @@ export function EventDetailBody({ detail, titleAs: TitleTag = 'h1' }: {
 
         <TitleTag className="text-3xl font-bold tracking-tight leading-tight m-0">{detail.title}</TitleTag>
 
-        <div className="flex flex-col gap-1.5 text-muted">
-          <p className="m-0 flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 shrink-0" aria-hidden />
-            {formatLongDate(detail.date_start)} · {formatTimeRange(detail.date_start, detail.date_end)}
-          </p>
+        <div className="flex flex-col gap-2 text-muted">
+          <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
+              <CalendarDays className="h-5 w-5" aria-hidden />
+            </span>
+            <p className="m-0 flex flex-col leading-tight">
+              <span className="font-display text-lg font-bold">{formatLongDate(detail.date_start)}</span>
+              <span className="mt-1 text-sm font-semibold text-amber-800">
+                {formatTimeRange(detail.date_start, detail.date_end)}
+              </span>
+            </p>
+          </div>
           {detail.location_address && (
             <p className="m-0 flex items-center gap-2">
               <MapPin className="w-4 h-4 shrink-0" aria-hidden />

@@ -72,31 +72,31 @@ check('success links through to /my-signups', true);
 
 // ================= Flow B — follow-up (Demo User) ====================
 console.log('--- Flow B: my signups + follow-up ---');
-await row('Sensory-Friendly Morning').locator('text=You went').waitFor({ timeout: 10000 });
+await row('Make It Mondays').locator('text=You went').waitFor({ timeout: 10000 });
 check('already-reported signup shows status', true);
 const rowCount = await page.locator('li').count();
 check('lists all 3 signups', rowCount === 3, `rows=${rowCount}`);
 check('future event hides prompt before simulate',
-  await row('Paint Night').getByText('check in with you after').isVisible());
+  await row('Summer Baking').getByText('check in with you after').isVisible());
 
 await page.getByRole('button', { name: /Simulate day passing/ }).click();
-await row('Paint Night').locator('legend', { hasText: 'Did you go?' }).waitFor({ timeout: 5000 });
+await row('Summer Baking').locator('legend', { hasText: 'Did you go?' }).waitFor({ timeout: 5000 });
 check('simulate reveals follow-up prompts', true);
 
-// one-tap YES on Adaptive Basketball -> badge recomputes to confirmed
-await row('Adaptive Basketball').getByRole('button', { name: 'Yes, I went' }).click();
-await row('Adaptive Basketball').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
+// one-tap YES on Transit Tuesdays -> badge recomputes to confirmed
+await row('Transit Tuesdays').getByRole('button', { name: 'Yes, I went' }).click();
+await row('Transit Tuesdays').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
 check('one-tap "yes" reports and surfaces badge',
-  (await row('Adaptive Basketball').locator('[role="status"]', { hasText: 'now marked' }).textContent())
+  (await row('Transit Tuesdays').locator('[role="status"]', { hasText: 'now marked' }).textContent())
     .includes('Accessibility confirmed'));
 
 // NO + "Prefer not to say" on Paint Night (optional blocker honored)
-await row('Paint Night').getByRole('button', { name: 'No', exact: true }).click();
-await row('Paint Night').locator('legend', { hasText: 'What got in the way?' }).waitFor({ timeout: 5000 });
+await row('Summer Baking').getByRole('button', { name: 'No', exact: true }).click();
+await row('Summer Baking').locator('legend', { hasText: 'What got in the way?' }).waitFor({ timeout: 5000 });
 check('blocker question revealed after "No"', true);
-await row('Paint Night').getByRole('button', { name: 'Prefer not to say' }).click();
-await row('Paint Night').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
-const pnts = await row('Paint Night').locator('[role="status"]', { hasText: 'now marked' }).textContent();
+await row('Summer Baking').getByRole('button', { name: 'Prefer not to say' }).click();
+await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
+const pnts = await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).textContent();
 check('"Prefer not to say" submits, badge stays unverified',
   pnts.includes('Not yet verified'), pnts);
 

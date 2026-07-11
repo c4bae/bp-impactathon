@@ -10,10 +10,11 @@ import {
   ACCOMMODATION_LABELS, CATEGORY_LABELS,
   type AccommodationTag, type EventCategory, type RankedEvent,
 } from '../../../../shared/models';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCost, formatEventDate } from './format';
-import { CATEGORY_ICONS, EventCover } from './covers';
+import { CATEGORY_GLYPHS, EventCover } from './covers';
 import { EventDetailPanel } from './EventDetailPanel';
+import { QuickPicksPage } from '../quickpicks/QuickPicksPage';
 
 // Contributor 1 — the single Discover screen (served at both / and /feed).
 // Content-first: ranked events immediately, with search, category pills,
@@ -80,6 +81,8 @@ export function FeedPage() {
 
   return (
     <div className="flex flex-col gap-6 py-2">
+      <QuickPicksPage embedded />
+
       <div>
         <h1 className="text-4xl font-bold tracking-tight mb-1">Discover events</h1>
         <p className="m-0 text-muted text-lg">Kitchener–Waterloo · best fit for you first</p>
@@ -100,10 +103,15 @@ export function FeedPage() {
 
       <div role="group" aria-label="Filter by category" className="flex gap-2 flex-wrap items-center">
         {(Object.keys(CATEGORY_LABELS) as EventCategory[]).map((c) => {
-          const Icon = CATEGORY_ICONS[c];
           return (
             <FilterPill key={c} selected={categories.includes(c)} onClick={() => toggleListParam('categories', c)}>
-              <Icon className="w-4 h-4" aria-hidden /> {CATEGORY_LABELS[c]}
+              <span
+                aria-hidden
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.04] text-lg leading-none"
+              >
+                {CATEGORY_GLYPHS[c]}
+              </span>
+              {CATEGORY_LABELS[c]}
             </FilterPill>
           );
         })}
@@ -204,16 +212,18 @@ function EventCard({ ev, onOpen }: { ev: RankedEvent; onOpen: () => void }) {
   const oneLiner = ev.plain_language_description ?? ev.description;
 
   return (
-    <Card aria-labelledby={`ev-${ev.id}-title`} className="p-4 rounded-2xl h-full">
-      <div className="flex gap-4 items-start">
-        <EventCover category={ev.category} className="w-20 h-20 text-3xl" />
-        <div className="flex-1 min-w-0 flex flex-col gap-1">
-          <p className="m-0 text-sm text-muted flex items-center gap-1.5 flex-wrap">
-            <span>{formatEventDate(ev.date_start, ev.date_end)}</span>
-            <span aria-hidden>·</span>
+    <Card aria-labelledby={`ev-${ev.id}-title`} className="p-0 overflow-hidden rounded-2xl h-full">
+      <EventCover title={ev.title} category={ev.category} className="w-full h-40" />
+      <div className="p-4">
+        <div className="min-w-0 flex flex-col gap-1">
+          <div className="mb-2 flex items-center gap-2 flex-wrap text-sm text-muted">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-dark px-3 py-1.5 font-semibold text-white shadow-sm">
+              <CalendarDays className="h-4 w-4" aria-hidden />
+              {formatEventDate(ev.date_start, ev.date_end)}
+            </span>
             <span>{formatCost(ev.cost, ev.cost_amount)}</span>
             <DistanceBadge km={ev.distance_km} />
-          </p>
+          </div>
           <h2 id={`ev-${ev.id}-title`} className="text-lg font-semibold leading-snug m-0">
             <Link
               to={`/events/${ev.id}`}

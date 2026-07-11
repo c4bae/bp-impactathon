@@ -7,7 +7,7 @@ import { Button, Card, Spinner } from '../../components/ui';
 
 // Contributor 2 — Quick Picks: daily 3-prompt card, one category at a time.
 // Each 👍/👎 feeds the weighted-count ranking heuristic behind /feed.
-export function QuickPicksPage() {
+export function QuickPicksPage({ embedded = false }: { embedded?: boolean }) {
   const { userId } = useSession();
   const [categories, setCategories] = useState<EventCategory[] | null>(null);
   const [index, setIndex] = useState(0);
@@ -37,7 +37,7 @@ export function QuickPicksPage() {
 
   if (loadError) {
     return (
-      <Card className="max-w-md mx-auto text-center">
+      <Card className={`${embedded ? 'w-full' : 'max-w-md mx-auto'} text-center`}>
         <p className="mb-3">Could not load today’s Quick Picks.</p>
         <Button onClick={() => window.location.reload()}>Try again</Button>
       </Card>
@@ -46,7 +46,7 @@ export function QuickPicksPage() {
 
   if (categories === null) {
     return (
-      <div className="flex justify-center py-12">
+      <div className={`flex justify-center ${embedded ? 'py-6' : 'py-12'}`}>
         <Spinner label="Loading Quick Picks" />
       </div>
     );
@@ -55,30 +55,36 @@ export function QuickPicksPage() {
   const done = index >= categories.length;
 
   if (done) {
+    const Heading = embedded ? 'h2' : 'h1';
     return (
-      <Card className="max-w-md mx-auto text-center">
-        <h1 className="text-2xl font-semibold mb-2">
+      <Card className={`${embedded ? 'w-full bg-brand-light/60 border-brand/20' : 'max-w-md mx-auto'} text-center`}>
+        <Heading className="text-2xl font-semibold mb-2">
           {categories.length > 0 ? 'That’s it for today! 🎉' : 'All caught up! 🎉'}
-        </h1>
-        <p className="text-muted mb-4">
+        </Heading>
+        <p className={`text-muted ${embedded ? 'mb-0' : 'mb-4'}`}>
           Your picks help us rank events you’ll actually like. Come back tomorrow for more.
         </p>
-        <Link
-          to="/feed"
-          className="inline-flex items-center justify-center min-h-[44px] px-4 rounded-lg font-medium bg-brand text-white hover:bg-brand-dark"
-        >
-          See your feed
-        </Link>
+        {!embedded && (
+          <Link
+            to="/feed"
+            className="inline-flex items-center justify-center min-h-[44px] px-4 rounded-lg font-medium bg-brand text-white hover:bg-brand-dark"
+          >
+            See your feed
+          </Link>
+        )}
       </Card>
     );
   }
 
   const category = categories[index];
+  const Heading = embedded ? 'h2' : 'h1';
 
   return (
-    <div className="max-w-md mx-auto">
+    <section aria-labelledby={embedded ? 'quick-picks-heading' : undefined} className={embedded ? 'w-full' : 'max-w-md mx-auto'}>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">Quick Picks</h1>
+        <Heading id={embedded ? 'quick-picks-heading' : undefined} className="text-2xl font-semibold">
+          Quick Picks
+        </Heading>
         <div className="flex items-center gap-2">
           <span className="flex gap-1" aria-hidden>
             {categories.map((c, i) => (
@@ -96,7 +102,7 @@ export function QuickPicksPage() {
         Question {index + 1} of {categories.length}
       </p>
 
-      <Card className="text-center py-8">
+      <Card className={`text-center ${embedded ? 'py-6 bg-brand-light/60 border-brand/20' : 'py-8'}`}>
         <h2 className="text-xl mb-6">
           Interested in <strong>{CATEGORY_LABELS[category]}</strong> events?
         </h2>
@@ -111,6 +117,6 @@ export function QuickPicksPage() {
       </Card>
 
       {submitNote && <p role="alert" className="text-badge-gap text-sm mt-3">{submitNote}</p>}
-    </div>
+    </section>
   );
 }

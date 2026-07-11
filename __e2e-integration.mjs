@@ -17,8 +17,8 @@ import { chromium } from 'playwright-core';
 
 const BASE = 'http://localhost:5173';
 const API = 'http://localhost:4000';
-const PAINT = '33333333-0000-0000-0000-000000000003';        // arts/social, no route
-const BASKETBALL = '33333333-0000-0000-0000-000000000004';   // sports/health, has bus route
+const BAKING = '33333333-0000-0000-0000-000000000003';       // food/social, no route
+const TRANSIT = '33333333-0000-0000-0000-000000000004';      // education/social, has bus route
 const USERS = {
   demo: '11111111-1111-1111-1111-111111111111',
   fin: '11111111-1111-1111-1111-000000000007',   // no accommodation needs, no prior quick picks
@@ -71,19 +71,19 @@ console.log('--- Seam B: Quick Picks (C2) vote shifts Feed (C1) ranking ---');
 await asUser(USERS.fin, '/feed');
 await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 const beforeOrder = await cardTitleOrder();
-const beforeRank = beforeOrder.indexOf('Open Studio: Paint Night');
-check('Paint Night present in Fin’s feed before any Quick Picks',
+const beforeRank = beforeOrder.indexOf('Summer Baking - Cookie Dough Bites');
+check('Summer Baking present in Fin’s feed before any Quick Picks',
   beforeRank !== -1, beforeOrder.join(', '));
 
 await asUser(USERS.fin, '/quick-picks');
 await page.locator('h1', { hasText: 'Quick Picks' }).waitFor({ timeout: 10000 });
-// Answer up to 3 prompts; vote Yes on Arts whenever it appears, No otherwise.
+// Answer up to 3 prompts; vote Yes on Food whenever it appears, No otherwise.
 for (let i = 0; i < 3; i++) {
   const heading = page.locator('h2', { hasText: 'Interested in' });
   if (!(await heading.isVisible().catch(() => false))) break;
   const text = await heading.textContent();
-  const isArts = /Arts/.test(text || '');
-  await page.getByRole('button', { name: isArts ? /Yes/ : /Not for me/ }).click();
+  const isFood = /Food/.test(text || '');
+  await page.getByRole('button', { name: isFood ? /Yes/ : /Not for me/ }).click();
 }
 check('Quick Picks reaches a done state after answering', await page.getByText(/for today/).isVisible({ timeout: 5000 }));
 
@@ -91,13 +91,13 @@ await page.getByRole('link', { name: 'See your feed' }).click();
 await page.waitForURL('**/feed');
 await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
 const afterOrder = await cardTitleOrder();
-const afterRank = afterOrder.indexOf('Open Studio: Paint Night');
-check('Paint Night rank improves (or stays top) after an Arts 👍 Quick Pick, OR the arts vote wasn’t offered this run',
+const afterRank = afterOrder.indexOf('Summer Baking - Cookie Dough Bites');
+check('Summer Baking rank improves (or stays top) after a Food 👍 Quick Pick, OR the food vote wasn’t offered this run',
   afterRank !== -1 && afterRank <= beforeRank,
   `before=${beforeRank} after=${afterRank} :: ${afterOrder.join(', ')}`);
-const paintCard = row('Open Studio: Paint Night').first();
+const bakingCard = row('Summer Baking - Cookie Dough Bites').first();
 check('Feed surfaces "matches your Quick Picks" reason after the vote (score_reasons wired end-to-end)',
-  await paintCard.getByText('matches your Quick Picks').isVisible({ timeout: 5000 }).catch(() => false)
+  await bakingCard.getByText('matches your Quick Picks').isVisible({ timeout: 5000 }).catch(() => false)
   || afterRank <= beforeRank, // tolerate the rare unseen-category fallback
   'quick-pick reason chip');
 
@@ -109,31 +109,31 @@ await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 1000
 // not full navigation — the CTAs inside it (shared with the full page via
 // EventDetailBody) are plain, un-intercepted Links, so clicking through
 // them still exercises real react-router navigation for the next step.
-await page.getByRole('link', { name: 'Adaptive Basketball Drop-In' }).click();
+await page.getByRole('link', { name: 'Transit Tuesdays' }).click();
 const dialog = page.getByRole('dialog', { name: 'Event details' });
-await dialog.getByRole('heading', { name: 'Adaptive Basketball Drop-In' }).waitFor({ timeout: 10000 });
+await dialog.getByRole('heading', { name: 'Transit Tuesdays' }).waitFor({ timeout: 10000 });
 check('Event detail loaded from Feed card link (Discover slide-over)', true);
 const getThereLink = dialog.getByRole('link', { name: 'How do I get there?' });
 check('Detail shows "How do I get there?" CTA when C2 has a route for this event',
   await getThereLink.isVisible());
 await getThereLink.click();
-await page.waitForURL(`**/events/${BASKETBALL}/route`);
+await page.waitForURL(`**/events/${TRANSIT}/route`);
 await page.locator('h1', { hasText: 'Getting there' }).waitFor({ timeout: 10000 });
 await page.locator('ol li').first().waitFor({ timeout: 5000 });
 const stepCount = await page.locator('ol li').count();
 check('Route guidance renders the seeded 4-step bus route reached from the event detail CTA',
   stepCount === 4, `steps=${stepCount}`);
 check('Step-free badge renders', await page.getByText('Step-free route').isVisible());
-check('Caution surfaced on the route (construction near stop)',
-  await page.getByText(/Construction on Hospital Rd/).isVisible());
+check('Caution surfaced on the route (check current GRT notices)',
+  await page.getByText(/Confirm the current GRT route/).isVisible());
 await page.getByRole('link', { name: 'Back to the event' }).click();
-await page.waitForURL(`**/events/${BASKETBALL}`);
+await page.waitForURL(`**/events/${TRANSIT}`);
 check('Route page links back to the correct event (id round-trips through the URL)', true);
 
 // ============== Seam F: no-route event hides the CTA (C2 data -> C1 render) ====
 console.log('--- Seam F: event detail hides "get there" CTA when C2 has no route ---');
-await page.goto(`${BASE}/events/${PAINT}`);
-await page.locator('h1', { hasText: 'Open Studio: Paint Night' }).waitFor({ timeout: 10000 });
+await page.goto(`${BASE}/events/${BAKING}`);
+await page.locator('h1', { hasText: 'Summer Baking - Cookie Dough Bites' }).waitFor({ timeout: 10000 });
 check('No "How do I get there?" CTA for an event with no seeded route',
   !(await page.getByRole('link', { name: 'How do I get there?' }).isVisible().catch(() => false)));
 
@@ -141,12 +141,12 @@ check('No "How do I get there?" CTA for an event with no seeded route',
 console.log('--- Seam D: Feed (C1) -> Event detail (C1) -> Signup (C3) ---');
 await asUser(USERS.demo, '/feed');
 await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
-await page.getByRole('link', { name: 'Open Studio: Paint Night' }).click();
+await page.getByRole('link', { name: 'Summer Baking - Cookie Dough Bites' }).click();
 await page.getByRole('dialog', { name: 'Event details' })
-  .getByRole('heading', { name: 'Open Studio: Paint Night' }).waitFor({ timeout: 10000 });
+  .getByRole('heading', { name: 'Summer Baking - Cookie Dough Bites' }).waitFor({ timeout: 10000 });
 await page.getByRole('link', { name: 'Sign me up' }).click();
-await page.waitForURL(`**/signup/${PAINT}`);
-await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
+await page.waitForURL(`**/signup/${BAKING}`);
+await page.locator('h1', { hasText: 'Summer Baking' }).waitFor({ timeout: 10000 });
 check('Signup form reached via the real Feed -> Detail -> Sign-up-CTA path (not a direct URL jump)', true);
 await page.getByRole('button', { name: /Sign me up — quick & private/ }).click();
 await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
@@ -162,38 +162,38 @@ const reporters = [
 ];
 // Demo user (just signed up above) + 4 more distinct reports = 5, crossing
 // BARRIER_SUPPRESSION_THRESHOLD (shared/models.ts) for a fresh
-// accommodation_gap count on Paint Night.
-const before = await (await fetch(`${API}/api/events/${PAINT}`)).json();
-console.log(`  Paint Night badge before this run: ${before.accessibility_badge_state}`);
+// accommodation_gap count on Summer Baking.
+const before = await (await fetch(`${API}/api/events/${BAKING}`)).json();
+console.log(`  Summer Baking badge before this run: ${before.accessibility_badge_state}`);
 
 await page.goto(`${BASE}/my-signups`);
 await page.evaluate((uid) => localStorage.setItem('kwhab.user_id', uid), USERS.demo);
 await page.goto(`${BASE}/my-signups`);
 await page.getByRole('button', { name: /Simulate day passing/ }).click();
-await row('Paint Night').getByRole('button', { name: 'No', exact: true }).click();
-await row('Paint Night').getByRole('button', { name: 'Accommodation gap' }).click();
-await row('Paint Night').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
+await row('Summer Baking').getByRole('button', { name: 'No', exact: true }).click();
+await row('Summer Baking').getByRole('button', { name: 'Accommodation gap' }).click();
+await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
 
 for (const uid of reporters) {
-  await asUser(uid, `/signup/${PAINT}`);
-  await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
+  await asUser(uid, `/signup/${BAKING}`);
+  await page.locator('h1', { hasText: 'Summer Baking' }).waitFor({ timeout: 10000 });
   await page.getByRole('button', { name: /Sign me up — quick & private/ }).click();
   await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
   await page.goto(`${BASE}/my-signups`);
   await page.getByRole('button', { name: /Simulate day passing/ }).click();
-  await row('Paint Night').getByRole('button', { name: 'No', exact: true }).click();
-  await row('Paint Night').getByRole('button', { name: 'Accommodation gap' }).click();
-  await row('Paint Night').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
+  await row('Summer Baking').getByRole('button', { name: 'No', exact: true }).click();
+  await row('Summer Baking').getByRole('button', { name: 'Accommodation gap' }).click();
+  await row('Summer Baking').locator('[role="status"]', { hasText: 'now marked' }).waitFor({ timeout: 5000 });
 }
 
-const after = await (await fetch(`${API}/api/events/${PAINT}`)).json();
+const after = await (await fetch(`${API}/api/events/${BAKING}`)).json();
 check('Server-side badge reaches reported_gap after enough accommodation_gap reports',
   after.accessibility_badge_state === 'reported_gap', after.accessibility_badge_state);
 
 await asUser(USERS.demo, '/feed');
 await page.locator('h1', { hasText: 'Discover events' }).waitFor({ timeout: 10000 });
-await page.getByText('Open Studio: Paint Night').first().waitFor({ timeout: 10000 });
-const flippedCard = row('Open Studio: Paint Night').first();
+await page.getByText('Summer Baking - Cookie Dough Bites').first().waitFor({ timeout: 10000 });
+const flippedCard = row('Summer Baking - Cookie Dough Bites').first();
 check('Badge flip from the accountability loop (C3) is visible on the Feed card (C1) without a hard refresh workaround',
   await flippedCard.getByText('Barrier reported').isVisible({ timeout: 5000 }).catch(() => false));
 check('Transparency: the reported_gap event is NOT hidden from the feed (still returned, still visible)',

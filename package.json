@@ -12,6 +12,7 @@
     "db:setup": "bash scripts/db.sh setup",
     "db:reset": "bash scripts/db.sh reset",
     "db:psql": "bash scripts/db.sh psql",
+    "db:sync-events": "node scripts/sync-teamup-events.mjs",
     "setup": "npm install && npm run db:start && npm run db:setup",
     "dev:server": "npm run dev -w server",
     "dev:web": "npm run dev -w web",
