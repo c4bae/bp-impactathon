@@ -65,8 +65,8 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function EventDetails({ event, onEdit, onClose }: {
-  event: RankedEvent; onEdit: () => void; onClose: () => void;
+function EventDetails({ event, canManage, onEdit, onClose }: {
+  event: RankedEvent; canManage: boolean; onEdit: () => void; onClose: () => void;
 }) {
   const start = new Date(event.date_start);
   return (
@@ -97,7 +97,7 @@ function EventDetails({ event, onEdit, onClose }: {
         {event.plain_language_description || event.description}
       </p>
       <div className="flex flex-wrap gap-2 pt-1">
-        <Button type="button" onClick={onEdit}>Edit event</Button>
+        {canManage && <Button type="button" onClick={onEdit}>Edit event</Button>}
         <Link
           to={`/events/${event.id}`}
           className="inline-flex items-center min-h-[44px] px-4 rounded-lg font-medium bg-brand-light text-brand-dark hover:bg-[#d6e9e2]"
@@ -304,26 +304,40 @@ function EventForm({ event, date, onSaved, onClose }: {
 }
 
 // ---- entry point --------------------------------------------------------
-export function EventModal({ modal, onClose, onChanged, onEdit }: {
+export function EventModal({ modal, canManage = false, onClose, onChanged, onEdit }: {
   modal: CalendarModal;
+  /** Org view only — create/edit/delete. Seekers get read-only details. */
+  canManage?: boolean;
   onClose: () => void;
   /** called after create/edit/delete so the calendar refetches */
   onChanged: () => void;
   /** view mode -> edit mode */
   onEdit: (e: RankedEvent) => void;
 }) {
+  // Seekers should never land in create/edit; fall back to view when possible.
+  const effective =
+    !canManage && modal.kind !== 'view'
+      ? (modal.kind === 'edit' ? { kind: 'view' as const, event: modal.event } : null)
+      : modal;
+  if (!effective) return null;
+
   const title =
-    modal.kind === 'view' ? modal.event.title
-    : modal.kind === 'edit' ? 'Edit event'
+    effective.kind === 'view' ? effective.event.title
+    : effective.kind === 'edit' ? 'Edit event'
     : 'Add event';
   return (
     <ModalShell title={title} onClose={onClose}>
-      {modal.kind === 'view' ? (
-        <EventDetails event={modal.event} onEdit={() => onEdit(modal.event)} onClose={onClose} />
+      {effective.kind === 'view' ? (
+        <EventDetails
+          event={effective.event}
+          canManage={canManage}
+          onEdit={() => onEdit(effective.event)}
+          onClose={onClose}
+        />
       ) : (
         <EventForm
-          event={modal.kind === 'edit' ? modal.event : null}
-          date={modal.kind === 'create' ? modal.date : null}
+          event={effective.kind === 'edit' ? effective.event : null}
+          date={effective.kind === 'create' ? effective.date : null}
           onSaved={onChanged}
           onClose={onClose}
         />

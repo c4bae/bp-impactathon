@@ -77,7 +77,7 @@ export function EventDetailPanel({ eventId, onClose }: { eventId: string; onClos
               <Button onClick={retry} className="rounded-full">Try again</Button>
             </Card>
           )}
-          {status === 'ready' && detail && <EventDetailBody detail={detail} titleAs="h2" />}
+          {status === 'ready' && detail && <EventDetailBody detail={detail} titleAs="h2" showLocationMap />}
         </div>
       </div>
     </div>

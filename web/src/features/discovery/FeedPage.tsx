@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../../api/client';
 import { useSession } from '../../lib/session';
@@ -10,11 +10,13 @@ import {
   ACCOMMODATION_LABELS, CATEGORY_LABELS,
   type AccommodationTag, type EventCategory, type RankedEvent,
 } from '../../../../shared/models';
-import { CalendarDays, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, ChevronUp, List, Map } from 'lucide-react';
 import { formatCost, formatEventDate } from './format';
 import { CATEGORY_GLYPHS, EventCover } from './covers';
 import { EventDetailPanel } from './EventDetailPanel';
 import { QuickPicksPage } from '../quickpicks/QuickPicksPage';
+
+const EventsMap = lazy(() => import('./EventsMap').then((module) => ({ default: module.EventsMap })));
 
 // Contributor 1 — the single Discover screen (served at both / and /feed).
 // Content-first: ranked events immediately, with search, category pills,
@@ -28,6 +30,7 @@ export function FeedPage() {
   const tags = (params.get('tags')?.split(',').filter(Boolean) ?? []) as AccommodationTag[];
   const freeOnly = params.get('free') === '1';
   const selectedEventId = params.get('event');
+  const view = params.get('view') === 'map' ? 'map' : 'list';
   const hasFilters = !!q || categories.length > 0 || tags.length > 0 || freeOnly;
 
   const [events, setEvents] = useState<RankedEvent[]>([]);
@@ -35,6 +38,7 @@ export function FeedPage() {
   const [attempt, setAttempt] = useState(0);
   const [searchText, setSearchText] = useState(q);
   const [showMoreFilters, setShowMoreFilters] = useState(tags.length > 0 || freeOnly);
+  const recommendedEvents = events.slice(0, 3);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,8 +88,32 @@ export function FeedPage() {
       <QuickPicksPage embedded />
 
       <div>
-        <h1 className="text-4xl font-bold tracking-tight mb-1">Discover events</h1>
-        <p className="m-0 text-muted text-lg">Kitchener–Waterloo · best fit for you first</p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight mb-1">Discover events</h1>
+            <p className="m-0 text-muted text-lg">Kitchener–Waterloo · best fit for you first</p>
+          </div>
+          <div className="inline-flex rounded-xl border border-black/10 bg-white p-1" aria-label="Choose event view">
+            <Button
+              type="button"
+              variant={view === 'list' ? 'secondary' : 'ghost'}
+              aria-pressed={view === 'list'}
+              onClick={() => updateParams((p) => p.delete('view'))}
+              className="rounded-lg"
+            >
+              <List className="h-4 w-4" aria-hidden /> List
+            </Button>
+            <Button
+              type="button"
+              variant={view === 'map' ? 'secondary' : 'ghost'}
+              aria-pressed={view === 'map'}
+              onClick={() => updateParams((p) => p.set('view', 'map'))}
+              className="rounded-lg"
+            >
+              <Map className="h-4 w-4" aria-hidden /> Map
+            </Button>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={submitSearch} role="search" className="flex gap-2 max-w-xl">
@@ -169,14 +197,55 @@ export function FeedPage() {
         </Card>
       )}
 
-      {status === 'ready' && events.length > 0 && (
-        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
-          {events.map((ev) => (
-            <li key={ev.id}>
-              <EventCard ev={ev} onOpen={() => updateParams((p) => p.set('event', ev.id))} />
-            </li>
-          ))}
-        </ul>
+      {status === 'ready' && events.length > 0 && view === 'list' && (
+        <div className="flex flex-col gap-8">
+          <section aria-labelledby="recommended-events-heading">
+            <div className="mb-4">
+              <h2 id="recommended-events-heading" className="text-2xl font-bold tracking-tight">
+                Recommended for you
+              </h2>
+              <p className="mt-1 text-muted">Events that best match your interests and needs.</p>
+            </div>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
+              {recommendedEvents.map((ev) => (
+                <li key={ev.id}>
+                  <EventCard
+                    ev={ev}
+                    instance="recommended"
+                    onOpen={() => updateParams((p) => p.set('event', ev.id))}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section aria-labelledby="all-events-heading">
+            <div className="mb-4">
+              <h2 id="all-events-heading" className="text-2xl font-bold tracking-tight">All events</h2>
+              <p className="mt-1 text-muted">Browse every event that matches your current filters.</p>
+            </div>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
+              {events.map((ev) => (
+                <li key={ev.id}>
+                  <EventCard
+                    ev={ev}
+                    instance="all"
+                    onOpen={() => updateParams((p) => p.set('event', ev.id))}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      )}
+
+      {status === 'ready' && events.length > 0 && view === 'map' && (
+        <Suspense fallback={<p className="flex items-center gap-2 text-muted"><Spinner /> Loading 3D map…</p>}>
+          <EventsMap
+            events={events}
+            onOpen={(id) => updateParams((p) => p.set('event', id))}
+          />
+        </Suspense>
       )}
 
       {selectedEventId && (
@@ -206,13 +275,16 @@ function FilterPill({ selected, onClick, children }: {
   );
 }
 
-function EventCard({ ev, onOpen }: { ev: RankedEvent; onOpen: () => void }) {
+function EventCard({ ev, instance, onOpen }: {
+  ev: RankedEvent; instance: 'recommended' | 'all'; onOpen: () => void;
+}) {
   const { speak, stop, speaking } = useReadAloud();
   useEffect(() => stop, [stop]); // don't keep talking after the card unmounts
   const oneLiner = ev.plain_language_description ?? ev.description;
+  const titleId = `${instance}-ev-${ev.id}-title`;
 
   return (
-    <Card aria-labelledby={`ev-${ev.id}-title`} className="p-0 overflow-hidden rounded-2xl h-full">
+    <Card aria-labelledby={titleId} className="p-0 overflow-hidden rounded-2xl h-full">
       <EventCover title={ev.title} category={ev.category} className="w-full h-40" />
       <div className="p-4">
         <div className="min-w-0 flex flex-col gap-1">
@@ -224,7 +296,7 @@ function EventCard({ ev, onOpen }: { ev: RankedEvent; onOpen: () => void }) {
             <span>{formatCost(ev.cost, ev.cost_amount)}</span>
             <DistanceBadge km={ev.distance_km} />
           </div>
-          <h2 id={`ev-${ev.id}-title`} className="text-lg font-semibold leading-snug m-0">
+          <h3 id={titleId} className="text-lg font-semibold leading-snug m-0">
             <Link
               to={`/events/${ev.id}`}
               onClick={(e) => {
@@ -238,7 +310,7 @@ function EventCard({ ev, onOpen }: { ev: RankedEvent; onOpen: () => void }) {
             >
               {ev.title}
             </Link>
-          </h2>
+          </h3>
           <p className="m-0 text-sm text-muted">{ev.org_name}</p>
           <div className="flex items-center gap-2 flex-wrap mt-1.5">
             <AccessibilityBadge state={ev.accessibility_badge_state} />

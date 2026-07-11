@@ -40,6 +40,7 @@ export interface FeedParams {
 }
 
 export type EventDetail = Event & { org_name: string; route: Route | null };
+export type TravelMode = 'walking' | 'cycling' | 'driving' | 'transit';
 
 export const api = {
   // ---- events / discovery (Contributor 1 + 2) ----
@@ -98,6 +99,16 @@ export const api = {
   // ---- routes (Contributor 2) ----
   route(eventId: string): Promise<Route> {
     return req(`/routes/${eventId}`);
+  },
+  walkingRoute(start: [number, number], end: [number, number], mode: TravelMode = 'walking'): Promise<{
+    coordinates: [number, number][]; distance_m: number; duration_s: number; mode: TravelMode;
+  }> {
+    const qs = new URLSearchParams({
+      start_lng: String(start[0]), start_lat: String(start[1]),
+      end_lng: String(end[0]), end_lat: String(end[1]),
+      mode,
+    });
+    return req(`/routes/walking?${qs}`);
   },
 
   // ---- org scorecard + admin (Contributor 4) ----
