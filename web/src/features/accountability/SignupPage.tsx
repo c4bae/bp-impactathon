@@ -120,11 +120,46 @@ export function SignupPage() {
         </p>
       )}
 
+      {/* The fastest, most private path is the recommended default — lead
+          with it, not the optional-details form. */}
+      <Card className="mb-5 border-2 border-brand bg-brand-light">
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-semibold text-brand-dark">
+            <span aria-hidden>⚡</span> Quick signup
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-semibold text-brand-dark">
+            <span aria-hidden>🔒</span> Private signup
+          </span>
+        </div>
+        <p className="font-medium mb-1">One tap and you&rsquo;re on the list.</p>
+        <p className="text-sm text-brand-dark mb-4">
+          Nothing else is asked, nothing is shared — not your name, not any access
+          need. We never require that information to sign you up.
+        </p>
+        <Button
+          type="button"
+          loading={submitting === 'skip'}
+          disabled={submitting !== null}
+          onClick={() => void submit('skip')}
+          className="w-full sm:w-auto text-lg py-3 px-6"
+        >
+          Sign me up — quick &amp; private
+        </Button>
+      </Card>
+
+      <div className="flex items-center gap-3 text-muted text-sm mb-5" role="separator">
+        <span className="h-px flex-1 bg-black/10" aria-hidden />
+        or, if you&rsquo;d like
+        <span className="h-px flex-1 bg-black/10" aria-hidden />
+      </div>
+
       <form
         onSubmit={(e) => { e.preventDefault(); void submit('share'); }}
         noValidate
       >
         <Card className="mb-4">
+          <p className="font-medium mb-1">Tell us what would help you take part</p>
+          <p className="text-muted text-sm mb-3">Fully optional, and never required to sign up.</p>
           <Field label="Name (optional)" htmlFor="signup-name">
             <input
               type="text"
@@ -178,20 +213,9 @@ export function SignupPage() {
 
         {submitError && <p role="alert" className="text-badge-gap mb-3">{submitError}</p>}
 
-        <div className="flex flex-wrap gap-3">
-          <Button type="submit" loading={submitting === 'share'} disabled={submitting !== null}>
-            Sign me up
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            loading={submitting === 'skip'}
-            disabled={submitting !== null}
-            onClick={() => void submit('skip')}
-          >
-            Skip — just sign me up
-          </Button>
-        </div>
+        <Button type="submit" variant="secondary" loading={submitting === 'share'} disabled={submitting !== null}>
+          Save these details and sign up
+        </Button>
       </form>
     </div>
   );

@@ -140,7 +140,7 @@ await page.getByRole('link', { name: 'Sign me up' }).click();
 await page.waitForURL(`**/signup/${PAINT}`);
 await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
 check('Signup form reached via the real Feed -> Detail -> Sign-up-CTA path (not a direct URL jump)', true);
-await page.getByRole('button', { name: /Skip — just sign me up/ }).click();
+await page.getByRole('button', { name: /Sign me up — quick & private/ }).click();
 await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
 check('Signup completes from the cross-feature navigation path', true);
 
@@ -169,7 +169,7 @@ await row('Paint Night').locator('[role="status"]', { hasText: 'now marked' }).w
 for (const uid of reporters) {
   await asUser(uid, `/signup/${PAINT}`);
   await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
-  await page.getByRole('button', { name: /Skip — just sign me up/ }).click();
+  await page.getByRole('button', { name: /Sign me up — quick & private/ }).click();
   await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
   await page.goto(`${BASE}/my-signups`);
   await page.getByRole('button', { name: /Simulate day passing/ }).click();

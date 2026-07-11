@@ -49,9 +49,11 @@ check('name prefilled from demo user',
 const preChecked = await page.locator('input[type=checkbox]:checked').count();
 check('saved needs (step-free, plain language) pre-checked', preChecked === 2, `checked=${preChecked}`);
 check('consent copy visible', await page.getByText('never a medical label').isVisible());
-const skipBtn = page.getByRole('button', { name: /Skip — just sign me up/ });
+check('quick/private signup double-branded at the top',
+  await page.getByText('Quick signup').isVisible() && await page.getByText('Private signup').isVisible());
+const skipBtn = page.getByRole('button', { name: /Sign me up — quick & private/ });
 const skipBox = await skipBtn.boundingBox();
-check('skip button prominent (>=44px tall)', !!skipBox && skipBox.height >= 44, `h=${skipBox?.height}`);
+check('quick/private signup button prominent (>=44px tall)', !!skipBox && skipBox.height >= 44, `h=${skipBox?.height}`);
 
 // keyboard: focus the Quiet space checkbox and toggle with Space
 const quiet = page.locator('label', { hasText: 'Quiet space' }).locator('input');
@@ -59,7 +61,7 @@ await quiet.focus();
 await page.keyboard.press('Space');
 check('checkbox toggles via keyboard (Space)', await quiet.isChecked());
 
-await page.getByRole('button', { name: 'Sign me up', exact: true }).click();
+await page.getByRole('button', { name: 'Save these details and sign up' }).click();
 await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
 check('success confirmation shown', true);
 check('shared needs echoed as chips (incl. keyboard-checked one)',
@@ -104,7 +106,7 @@ const reporters = [USERS.ava, USERS.ben, USERS.cara, USERS.dev, USERS.elu];
 for (let i = 0; i < reporters.length; i++) {
   await asUser(reporters[i], `/signup/${PAINT}`);
   await page.locator('h1', { hasText: 'Paint Night' }).waitFor({ timeout: 10000 });
-  await page.getByRole('button', { name: /Skip — just sign me up/ }).click();
+  await page.getByRole('button', { name: /Sign me up — quick & private/ }).click();
   await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
   if (i === 0) {
     check('skip path confirms without sharing needs',

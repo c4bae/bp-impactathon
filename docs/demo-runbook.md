@@ -11,81 +11,76 @@ and both live AI vendors on screen without breaking the spine. Run with
 
 ```bash
 npm run dev                     # both servers up
-node scripts/demo-stage.mjs    # stages Kitchen at 4 gap reports (one shy of the flip)
+node scripts/demo-stage.mjs     # stages Kitchen at 4 gap reports (one shy of the flip)
 ```
 
 Then in the browser: header dropdown → switch to **Ava**, open **Discover**
 (`/feed`). Keep the window at a comfortable zoom. That's the whole setup.
 
+Open a **second browser tab** too (same window, `Cmd+T`) — you'll use it
+mid-demo as the organizer, so the "seeker sees it" and "organizer resolves
+it" beats are two genuinely independent sessions hitting the real API, not
+one tab narrating both sides.
+
 > Re-run `node scripts/demo-stage.mjs` any time to rewind the demo — it's
 > idempotent (resets to seed and re-stages).
 
-## The script
+## The walkthrough
 
-**0:00 – 0:25 · Discover (seeker side, C1)**
-On the feed: *"This is Ava's feed — ranked for her, sensory-friendly events
-first, in plain language."* → tap **Read this aloud** on any card. *"That's a
-live ElevenLabs voice, not a browser fallback — same vendor we'll use twice
-more."* → stop it. *"See these badges? They're earned from attendee feedback,
-not self-declared by organizers. Community Kitchen says 'Not yet verified' —
-remember it."*
-→ Click **Community Kitchen: Cook & Share**.
+1. **Discover.** On the feed, tap **Read this aloud** on any card, then stop it.
+   *Say: "Live ElevenLabs voice, not a browser fallback — we'll use it twice
+   more."* Point at a badge. *Say: "Earned from attendee feedback, not
+   self-declared. Community Kitchen says 'Not yet verified' — remember it."*
+   → Click **Community Kitchen: Cook & Share**.
 
-**0:25 – 0:45 · Quick Picks + Route detour (C2)**
-Nav → **Quick Picks**: *"One more personalization signal — a daily tap."* Vote
-👍 on whatever category appears, then **See your feed** and point at the
-re-order + the "matches your Quick Picks" chip. *"Ranking updates live."* Open
-**Adaptive Basketball Drop-In → How do I get there?**: *"Step-free routing,
-real map, and it can speak the directions — ElevenLabs again."* Tap **Speak
-directions** for a couple seconds, stop it, then head back to Community
-Kitchen's detail page to pick the spine back up.
+2. **Quick Picks.** Nav → **Quick Picks**. Vote 👍 on whatever category shows
+   up, then **See your feed**. Point at the re-order and the "matches your
+   Quick Picks" chip. *Say: "Ranking updates live."*
 
-**0:25 – 0:50 · Sign up (privacy moment)**
-On the detail page click **Sign me up**. On the form: *"Ava can optionally tell
-us what helps her take part — a quiet space, step-free access. Functional
-needs, never a diagnosis; there is no 'what's your disability' field anywhere
-in this product. It's genuinely skippable — that big skip button signs her up
-without sharing anything."*
-→ Tick **Step-free**, click **Sign me up**, then **See my signups**.
+3. **Route.** Open **Adaptive Basketball Drop-In → How do I get there?**.
+   Point at the map and the step-free badge. Tap **Speak directions** for a
+   couple seconds, then stop it. *Say: "ElevenLabs again."*
+   → Navigate back to Community Kitchen's detail page to pick the spine back up.
 
-**0:50 – 1:20 · The follow-up → the flip (the money shot)**
-*"A day after the event we check in — I'll fast-forward."*
-→ Click **⏩ Simulate day passing**. On the Kitchen row: **No** → *"What got in
-the way?"* → **Accommodation gap** (the kitchen was upstairs).
-*"Ava is the fifth person to report this same barrier. Four reports? Nothing
-shows — anywhere — because counts under five never leave the server. Five
-crosses the privacy threshold…"* → point at the message: badge is now
-**Barrier reported**. *"Aggregated accountability, no individual exposed."*
+4. **Sign up.** Click **Sign me up** on the event page. Point at the top of
+   the signup screen — the **⚡ Quick signup / 🔒 Private signup** card is the
+   first thing on the page. *Say: "This is the default, recommended path —
+   one tap, nothing shared, nothing required."* Then scroll to the optional
+   section below it. *Say: "If Ava wants to, she can tell us what helps her
+   take part — functional needs, never a diagnosis. There's no 'what's your
+   disability' field anywhere in this product."* → Tick **Step-free**, click
+   **Save these details and sign up**, then **See my signups**.
 
-**1:20 – 1:35 · Seekers see it immediately**
-→ Nav: **Discover**. *"Every seeker now sees the warning on the Kitchen card.
-The badge is the event's reputation."*
+5. **The flip — the money shot.** On the Kitchen row (the follow-up prompt is
+   already open — the event genuinely happened, no "simulate" needed): **No**
+   → **Accommodation gap**. *Say: "Ava's the fifth person to report this.
+   Four reports show nothing, anywhere — counts under five never leave the
+   server. Five crosses the threshold…"* → point at the badge: now **Barrier
+   reported**. *Say: "Aggregated accountability, no individual exposed."*
 
-**1:35 – 2:10 · The organizer acts (org side)**
-→ Nav: **Org Dashboard** (KW Habilitation is the signed-in org).
-*"Attendance, retention, and barriers ranked — already privacy-suppressed;
-the org never sees small counts either. Accommodation gap: five reports on
-Community Kitchen. They move the workshop downstairs and attest it…"*
-→ Click **We've fixed this → Resolve gap**. Badge flips to **Accessibility
-confirmed** with the confirmation message.
+6. **The organizer resolves it — in the other tab, live.** Switch to your
+   **second tab**, open **Org Dashboard**. *Say: "Different tab, different
+   session — this is the same server Ava just talked to, nothing staged
+   between them."* Point at the privacy-suppressed ranked blockers already
+   showing Ava's report. Click **We've fixed this → Resolve gap** — badge
+   flips to **Accessibility confirmed** right there.
+   → Switch back to **Ava's tab**, nav to **Discover**. *Say: "Ava didn't do
+   anything — she just checks back and the fix is there."* Point at the
+   Kitchen card: **Accessibility confirmed ✓**.
 
-**2:10 – 2:30 · Close the loop**
-→ Nav: **Discover**. Kitchen card now shows **Accessibility confirmed ✓**.
-*"Report → aggregate past a privacy threshold → badge → fix → confirmed."*
+7. **Post an event by voice — the AI showcase.** Nav → **Post Event → By
+   voice**. Click **Skip recording — use a sample** (avoids depending on a
+   conference mic; the mic path is verified separately). Click **Structure
+   the details**. *Say: "Live OpenRouter, turning free speech into structured
+   fields, right now."* Click **Read this back to me**. *Say: "Live
+   ElevenLabs reads it back for staff to confirm before anything publishes —
+   never guessing a date, never publishing unconfirmed."* Fill in the date,
+   click **Publish event**, then jump back to **Discover** and show it live
+   in the feed.
 
-**2:30 – 3:00 · Post an event by voice (C4, the AI showcase)**
-→ Nav: **Post Event → By voice**. *"Staff can post by speaking. I'll use the
-sample so we're not at the mercy of a conference mic — the transcript itself
-is genuinely spoken and Scribe-transcribed, verified separately."* Click
-**Skip recording — use a sample → Structure the details** — *"that's live
-OpenRouter turning free speech into structured fields, right now."* Click
-**Read this back to me** — *"and live ElevenLabs reads it back for staff to
-confirm before anything publishes — never guessing a date, never publishing
-unconfirmed."* Fill the date, **Publish event**, then jump back to **Discover**
-and show it live in the feed.
-*"Honest caveat: the threshold of five is a demo value — real calibration
-happens with KW Hab. But the loop is real, and both AI vendors you just saw
-are live, not mocked."*
+8. **Close.** *Say: "The threshold of five is a demo value — real
+    calibration happens with KW Hab. But the loop is real, and both AI
+    vendors you just saw are live, not mocked."*
 
 ## Say-out-loud checklist (judges care)
 

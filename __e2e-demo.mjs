@@ -97,17 +97,23 @@ await page.waitForFunction(
 check('Ava\'s saved need pre-checked',
   (await page.locator('input[type=checkbox]:checked').count()) >= 1);
 check('consent copy on screen', await page.getByText('never a medical label').isVisible());
-check('skip path visible', await page.getByRole('button', { name: /Skip — just sign me up/ }).isVisible());
+check('quick/private signup double-branded and prominent at the top',
+  await page.getByText('Quick signup').isVisible() && await page.getByText('Private signup').isVisible());
 await page.locator('label', { hasText: 'Step-free' }).locator('input').check();
-await page.getByRole('button', { name: 'Sign me up', exact: true }).click();
+await page.getByRole('button', { name: 'Save these details and sign up' }).click();
 await page.locator('h1', { hasText: 'signed up' }).waitFor({ timeout: 5000 });
 check('signup confirmed', true);
 await page.getByRole('link', { name: 'See my signups' }).click();
 await page.waitForURL('**/my-signups');
 
-// ---- 0:50 Follow-up -> the flip ---------------------------------------
-console.log('--- Beat 3: follow-up, 5th report flips the badge ---');
-await page.getByRole('button', { name: /Simulate day passing/ }).click();
+// ---- Follow-up -> the flip ----------------------------------------------
+// No "Simulate day passing" click: Community Kitchen is seeded dated in the
+// past (see db/seed.sql), so MySignupsPage's own isPast gate opens the
+// follow-up prompt for real — nothing simulated.
+console.log('--- Beat 3: follow-up, 5th report flips the badge (no simulate click) ---');
+check('follow-up prompt is open without clicking Simulate day passing',
+  await kitchenCard().locator('legend', { hasText: 'Did you go?' })
+    .waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false));
 await kitchenCard().getByRole('button', { name: 'No', exact: true }).click();
 await kitchenCard().getByRole('button', { name: 'Accommodation gap' }).click();
 const flipStatus = kitchenCard().locator('[role="status"]', { hasText: 'now marked' });
@@ -115,34 +121,38 @@ await flipStatus.waitFor({ timeout: 5000 });
 check('Ava\'s 5th report flips badge to "Barrier reported" live',
   (await flipStatus.textContent()).includes('Barrier reported'));
 
-// ---- 1:20 Seekers see it ----------------------------------------------
-console.log('--- Beat 4: flip visible on the feed ---');
-await page.getByRole('link', { name: 'Discover', exact: true }).click();
-await kitchenCard().getByText('Barrier reported').waitFor({ timeout: 10000 });
-check('feed card now warns "Barrier reported"', true);
-
-// ---- 1:35 Organizer resolves ------------------------------------------
-console.log('--- Beat 5: org dashboard, resolve gap ---');
-await page.getByRole('link', { name: 'Org Dashboard' }).click();
-await page.locator('h1', { hasText: 'KW Habilitation' }).waitFor({ timeout: 10000 });
-const blockers = page.locator('li', { hasText: 'Accommodation gap' }).first();
+// ---- Organizer resolves it, in a genuinely separate browser tab/session --
+// Mirrors the runbook: a second real tab hits the same live API, no shared
+// client state, no page-internal "trick" — proof the update is server-side.
+console.log('--- Beat 4: organizer resolves the gap, in a second real tab ---');
+const orgPage = await browser.newPage();
+const orgPageErrors = [];
+orgPage.on('pageerror', (e) => orgPageErrors.push(String(e)));
+orgPage.on('console', (m) => {
+  if (m.type() === 'error' && !m.location()?.url?.includes('favicon')) orgPageErrors.push(m.text());
+});
+await orgPage.goto(`${BASE}/org`);
+await orgPage.locator('h1', { hasText: 'KW Habilitation' }).waitFor({ timeout: 10000 });
+const blockers = orgPage.locator('li', { hasText: 'Accommodation gap' }).first();
 await blockers.waitFor({ timeout: 5000 });
-check('ranked blockers show "Accommodation gap" at 5 reports',
+check('second tab (org session) independently sees Ava\'s report via the real API (5 reports)',
   (await blockers.textContent()).includes('5 report'));
 check('privacy threshold footnote on screen',
-  await page.getByText('are never shown').isVisible());
-await page.getByRole('button', { name: /Resolve accessibility gap for .*Community Kitchen/ }).click();
-await page.locator('[role="status"]', { hasText: 'Accessibility confirmed' }).waitFor({ timeout: 5000 });
-check('resolve-gap confirms with a status message', true);
-await page.locator('section[aria-label="Your events"]')
+  await orgPage.getByText('are never shown').isVisible());
+await orgPage.getByRole('button', { name: /Resolve accessibility gap for .*Community Kitchen/ }).click();
+await orgPage.locator('[role="status"]', { hasText: 'Accessibility confirmed' }).waitFor({ timeout: 5000 });
+check('resolve-gap confirms with a status message in the org tab', true);
+await orgPage.locator('section[aria-label="Your events"]')
   .getByText('Accessibility confirmed').waitFor({ timeout: 5000 });
-check('dashboard badge now "Accessibility confirmed"', true);
+check('org dashboard badge now "Accessibility confirmed"', true);
+check('no console/page errors in the org tab', orgPageErrors.length === 0, orgPageErrors.join(' | ').slice(0, 300));
+await orgPage.close();
 
-// ---- 2:10 Loop closes on the feed --------------------------------------
-console.log('--- Beat 6: loop closes ---');
+// ---- Back in Ava's original tab: no reload trick, just revisit -----------
+console.log('--- Beat 5: loop closes, visible from Ava\'s original tab ---');
 await page.getByRole('link', { name: 'Discover', exact: true }).click();
 await kitchenCard().getByText('Accessibility confirmed').first().waitFor({ timeout: 10000 });
-check('feed card shows "Accessibility confirmed"', true);
+check('Ava\'s original tab reflects the org\'s live resolve-gap (real server round trip)', true);
 
 // ---- 2:30 Post an event by voice (C4, live OpenRouter + ElevenLabs) ----
 console.log('--- Beat 7: voice create — live OpenRouter extraction + live ElevenLabs read-back ---');

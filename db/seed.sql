@@ -53,7 +53,11 @@ INSERT INTO events
    'Cook a shared meal together and take a portion home. All ingredients provided. Kitchen is on the second floor.',
    'Cook a meal with others and take some home. Food is provided. The kitchen is upstairs.',
    ARRAY['food','social']::event_category[],
-   '2026-07-19 17:30-04', '2026-07-19 19:30-04',
+   -- Deliberately dated in the past (relative to whenever the seed runs), not
+   -- a fixed literal like the other events: the accountability demo needs
+   -- this event's follow-up prompt to open for real (MySignupsPage gates on
+   -- date_end < now()), with no "Simulate day passing" button click needed.
+   NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days' + INTERVAL '2 hours',
    'free', NULL, 'adults', 43.4516, -80.4925, '108 Sydney St S, Kitchener',
    ARRAY['plain_language']::accommodation_tag[],
    'reported_gap', 'form'),

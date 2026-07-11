@@ -6,6 +6,11 @@ import type { ResolveGapBody } from '../../../shared/contracts';
 
 export const org = Router();
 
+// GET /api/orgs  -> all seeded orgs (for the no-auth demo org switcher)
+org.get('/', async (_req, res) => {
+  res.json(await query(`SELECT * FROM orgs ORDER BY created_at ASC`));
+});
+
 // GET /api/orgs/:id/scorecard  -> signups vs attendance, ranked blockers
 // (suppression applied), retention. Contributor 4 renders this.
 org.get('/:id/scorecard', async (req, res) => {

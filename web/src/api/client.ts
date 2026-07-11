@@ -100,6 +100,9 @@ export const api = {
   },
 
   // ---- org scorecard + admin (Contributor 4) ----
+  orgs(): Promise<import('../../../shared/models').Org[]> {
+    return req(`/orgs`);
+  },
   scorecard(orgId: string): Promise<OrgScorecard> {
     return req(`/orgs/${orgId}/scorecard`);
   },

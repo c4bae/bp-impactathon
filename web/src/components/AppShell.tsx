@@ -2,19 +2,30 @@ import { NavLink } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { DemoSwitcher } from './DemoSwitcher';
+import { useSession } from '../lib/session';
 
-const navItems = [
+// Two disjoint nav sets — which one shows depends on the View toggle in
+// DemoSwitcher, mirroring the two real audiences this product has (seekers
+// vs. organizers). Neither list gates route access, just what's in the nav.
+// Calendar is genuinely dual-purpose (browses the seeker feed, but its
+// modal also does org-owned create/edit/delete) — it's in both lists.
+const USER_NAV = [
   { to: '/', label: 'Home', end: true },
   { to: '/feed', label: 'Discover' },
   { to: '/calendar', label: 'Calendar' },
   { to: '/quick-picks', label: 'Quick Picks' },
   { to: '/my-signups', label: 'My Signups' },
-  { to: '/org', label: 'Org Dashboard' },
+];
+const ORG_NAV = [
+  { to: '/org', label: 'Org Dashboard', end: true },
+  { to: '/calendar', label: 'Calendar' },
   { to: '/admin/new', label: 'Post Event' },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [aiMode, setAiMode] = useState<'mock' | 'live' | null>(null);
+  const { view } = useSession();
+  const navItems = view === 'org' ? ORG_NAV : USER_NAV;
   useEffect(() => { api.aiStatus().then((s) => setAiMode(s.mode)).catch(() => {}); }, []);
 
   return (
