@@ -20,17 +20,26 @@ type View = 'month' | 'week' | 'list';
 const VIEW_LABELS: Record<View, string> = { month: 'Month', week: 'Week', list: 'List' };
 
 export function CalendarPage() {
-  const { userId } = useSession();
+  const { userId, view: demoView } = useSession();
+  const isOrg = demoView === 'org';
   const [events, setEvents] = useState<RankedEvent[] | null>(null);
   const [error, setError] = useState('');
   const [view, setView] = useState<View>('month');
   const [cursor, setCursor] = useState(() => new Date());
   const [cats, setCats] = useState<EventCategory[]>([]);
-  const [orgFilter, setOrgFilter] = useState('');
   const [modal, setModal] = useState<CalendarModal | null>(null);
   const [dictating, setDictating] = useState(false);
   const [dictation, setDictation] = useState<DictationDraft | null>(null);
   const lastJumpDate = useRef('');
+
+  // Drop create/edit/dictate if the demo view flips back to seeker.
+  useEffect(() => {
+    if (isOrg) return;
+    setDictating(false);
+    setDictation(null);
+    lastJumpDate.current = '';
+    setModal((m) => (m && m.kind !== 'view' ? null : m));
+  }, [isOrg]);
 
   const load = useCallback(() => {
     setError('');
@@ -40,19 +49,11 @@ export function CalendarPage() {
   }, [userId]);
   useEffect(load, [load]);
 
-  const orgs = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const e of events ?? []) m.set(e.org_id, e.org_name);
-    return [...m.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [events]);
-
   const filtered = useMemo(
     () => (events ?? []).filter(
-      (e) =>
-        (!cats.length || e.category.some((c) => cats.includes(c))) &&
-        (!orgFilter || e.org_id === orgFilter),
+      (e) => !cats.length || e.category.some((c) => cats.includes(c)),
     ),
-    [events, cats, orgFilter],
+    [events, cats],
   );
 
   const eventDays = useMemo(
@@ -122,15 +123,17 @@ export function CalendarPage() {
           <h1 className="text-xl font-bold text-brand-dark">Community calendar</h1>
           <p className="text-muted text-sm">Inclusive, accessible events across Waterloo Region.</p>
         </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="secondary" disabled={dictating}
-            onClick={() => { setModal(null); setDictating(true); }}>
-            🎙 Dictate event
-          </Button>
-          <Button type="button" onClick={() => setModal({ kind: 'create', date: cursor })}>
-            + Add event
-          </Button>
-        </div>
+        {isOrg && (
+          <div className="flex gap-2">
+            <Button type="button" variant="secondary" disabled={dictating}
+              onClick={() => { setModal(null); setDictating(true); }}>
+              🎙 Dictate event
+            </Button>
+            <Button type="button" onClick={() => setModal({ kind: 'create', date: cursor })}>
+              + Add event
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[240px_1fr] items-start">
@@ -167,17 +170,6 @@ export function CalendarPage() {
                 Clear categories
               </button>
             )}
-            <label className="block mt-3">
-              <span className="font-semibold text-sm">Organization</span>
-              <select
-                value={orgFilter}
-                onChange={(e) => setOrgFilter(e.target.value)}
-                className="mt-1 w-full min-h-[44px] rounded-lg border border-black/20 bg-white px-2"
-              >
-                <option value="">All organizations</option>
-                {orgs.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
-              </select>
-            </label>
           </Card>
         </div>
 
@@ -240,13 +232,14 @@ export function CalendarPage() {
       {modal && (
         <EventModal
           modal={modal}
+          canManage={isOrg}
           onClose={() => setModal(null)}
           onChanged={() => { setModal(null); load(); }}
           onEdit={(e) => setModal({ kind: 'edit', event: e })}
         />
       )}
 
-      {dictating && (
+      {isOrg && dictating && (
         <DictateEventPanel
           onClose={stopDictation}
           onDraftChange={handleDictationDraft}

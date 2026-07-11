@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
+import { useSession } from './lib/session';
 
 // ---- Feature entry points (each owned by one contributor) ------------
 // Contributor 1 — Seeker Discovery
@@ -19,6 +20,13 @@ import { CreateEventChoicePage } from './features/admin/CreateEventChoicePage';
 import { VoiceCreatePage } from './features/admin/VoiceCreatePage';
 import { FormCreatePage } from './features/admin/FormCreatePage';
 
+/** Event create/dictate flows are organizer-only in the demo. */
+function OrgOnly({ children }: { children: React.ReactNode }) {
+  const { view } = useSession();
+  if (view !== 'org') return <Navigate to="/calendar" replace />;
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -33,9 +41,9 @@ export default function App() {
           <Route path="/signup/:eventId" element={<SignupPage />} />
           <Route path="/my-signups" element={<MySignupsPage />} />
           <Route path="/org" element={<OrgScorecardPage />} />
-          <Route path="/admin/new" element={<CreateEventChoicePage />} />
-          <Route path="/admin/new/voice" element={<VoiceCreatePage />} />
-          <Route path="/admin/new/form" element={<FormCreatePage />} />
+          <Route path="/admin/new" element={<OrgOnly><CreateEventChoicePage /></OrgOnly>} />
+          <Route path="/admin/new/voice" element={<OrgOnly><VoiceCreatePage /></OrgOnly>} />
+          <Route path="/admin/new/form" element={<OrgOnly><FormCreatePage /></OrgOnly>} />
           <Route path="*" element={<p>Page not found. <a className="text-brand underline" href="/">Go home</a></p>} />
         </Routes>
       </AppShell>
