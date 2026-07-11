@@ -38,6 +38,7 @@ export function FeedPage() {
   const [attempt, setAttempt] = useState(0);
   const [searchText, setSearchText] = useState(q);
   const [showMoreFilters, setShowMoreFilters] = useState(tags.length > 0 || freeOnly);
+  const recommendedEvents = events.slice(0, 3);
 
   useEffect(() => {
     let cancelled = false;
@@ -197,13 +198,45 @@ export function FeedPage() {
       )}
 
       {status === 'ready' && events.length > 0 && view === 'list' && (
-        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
-          {events.map((ev) => (
-            <li key={ev.id}>
-              <EventCard ev={ev} onOpen={() => updateParams((p) => p.set('event', ev.id))} />
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-8">
+          <section aria-labelledby="recommended-events-heading">
+            <div className="mb-4">
+              <h2 id="recommended-events-heading" className="text-2xl font-bold tracking-tight">
+                Recommended for you
+              </h2>
+              <p className="mt-1 text-muted">Events that best match your interests and needs.</p>
+            </div>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
+              {recommendedEvents.map((ev) => (
+                <li key={ev.id}>
+                  <EventCard
+                    ev={ev}
+                    instance="recommended"
+                    onOpen={() => updateParams((p) => p.set('event', ev.id))}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section aria-labelledby="all-events-heading">
+            <div className="mb-4">
+              <h2 id="all-events-heading" className="text-2xl font-bold tracking-tight">All events</h2>
+              <p className="mt-1 text-muted">Browse every event that matches your current filters.</p>
+            </div>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
+              {events.map((ev) => (
+                <li key={ev.id}>
+                  <EventCard
+                    ev={ev}
+                    instance="all"
+                    onOpen={() => updateParams((p) => p.set('event', ev.id))}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       )}
 
       {status === 'ready' && events.length > 0 && view === 'map' && (
@@ -242,13 +275,16 @@ function FilterPill({ selected, onClick, children }: {
   );
 }
 
-function EventCard({ ev, onOpen }: { ev: RankedEvent; onOpen: () => void }) {
+function EventCard({ ev, instance, onOpen }: {
+  ev: RankedEvent; instance: 'recommended' | 'all'; onOpen: () => void;
+}) {
   const { speak, stop, speaking } = useReadAloud();
   useEffect(() => stop, [stop]); // don't keep talking after the card unmounts
   const oneLiner = ev.plain_language_description ?? ev.description;
+  const titleId = `${instance}-ev-${ev.id}-title`;
 
   return (
-    <Card aria-labelledby={`ev-${ev.id}-title`} className="p-0 overflow-hidden rounded-2xl h-full">
+    <Card aria-labelledby={titleId} className="p-0 overflow-hidden rounded-2xl h-full">
       <EventCover title={ev.title} category={ev.category} className="w-full h-40" />
       <div className="p-4">
         <div className="min-w-0 flex flex-col gap-1">
@@ -260,7 +296,7 @@ function EventCard({ ev, onOpen }: { ev: RankedEvent; onOpen: () => void }) {
             <span>{formatCost(ev.cost, ev.cost_amount)}</span>
             <DistanceBadge km={ev.distance_km} />
           </div>
-          <h2 id={`ev-${ev.id}-title`} className="text-lg font-semibold leading-snug m-0">
+          <h3 id={titleId} className="text-lg font-semibold leading-snug m-0">
             <Link
               to={`/events/${ev.id}`}
               onClick={(e) => {
@@ -274,7 +310,7 @@ function EventCard({ ev, onOpen }: { ev: RankedEvent; onOpen: () => void }) {
             >
               {ev.title}
             </Link>
-          </h2>
+          </h3>
           <p className="m-0 text-sm text-muted">{ev.org_name}</p>
           <div className="flex items-center gap-2 flex-wrap mt-1.5">
             <AccessibilityBadge state={ev.accessibility_badge_state} />
